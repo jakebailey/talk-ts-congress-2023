@@ -1,7 +1,26 @@
 ---
-css: unocss
+layout: cover
 ---
 
 # Converting TypeScript to Modules
 
-Cool
+## Jake Bailey
+
+### Senior Software Engineer, Microsoft
+
+---
+
+# A little history...
+
+```ts
+namespace ts {
+    export function createSourceFile(...) {
+        // ...
+    }
+}
+```
+
+foo:
+
+- bar
+  - baz
