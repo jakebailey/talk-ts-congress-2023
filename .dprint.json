@@ -14,7 +14,19 @@
         "lineWidth": 80
     },
     "prettier": {
-        "tabWidth": 2 // for yaml
+        "singleQuote": false,
+        "tabWidth": 4,
+        "useTabs": false,
+        "printWidth": 120,
+        "endOfLine": "auto",
+        "overrides": [
+            {
+                "files": ["*.yml", "*.yaml"],
+                "options": {
+                    "tabWidth": 2
+                }
+            }
+        ]
     },
     "includes": [
         "**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,yml,vue}"
