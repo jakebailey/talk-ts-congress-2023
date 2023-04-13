@@ -49,5 +49,8 @@ for i in $versions; do
     git switch --detach $i >& /dev/null
     git restore . &> /dev/null
     git clean -fdx . >& /dev/null
-    echo "[\"$i\", $(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json src | jq '.Total.code'), $(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json src/compiler/checker.ts | jq '.Total.code')],"
+    echo -n "[\"$i\", "
+    echo -n "$(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json -e lib src | jq '.Total.code'), "
+    echo -n "$(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json -e lib -e harness -e testRunner -e loggedIO src | jq '.Total.code'), "
+    echo "$(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json -e lib src/compiler/checker.ts | jq '.Total.code')],"
 done
