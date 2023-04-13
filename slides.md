@@ -41,8 +41,6 @@ This slide sucks.
 
 # TS is big!
 
-<!-- TODO: use LightOrDark -->
-
 <LightOrDark>
 <template #dark><TSReleaseByLines theme="dark" /></template>
 <template #light><TSReleaseByLines theme="light" /></template>
