@@ -12,34 +12,28 @@ layout: cover
 
 # Outline
 
--
+- What even _are_ modules?
+- What does it mean to "switch to modules"?
+- How did we do it?
+- How did it go?
 
 ---
 
-# A little history...
+# Goals
 
-This slide sucks.
+How can we...
 
-- 2012
-  - TypeScript announced! (v0.8)
-  - DefinitelyTyped! (Yes, this early!)
-- ...
-- 2014
-  - v1.1 - TypeScript _rewritten_
-  - v1.3 - Tuple types
-  - v1.4 - Unions (after tuples???), `let`/`const`, template strings
-  - v1.5 - ES module syntax (`import`/`export`), decorators
-- ...
-- 2016
-  - v2.0 - control-flow analysis (CFA), `undefined`, `null`
-- ...
-- 2022
-  - v5.0 dev begins
-  - Migration to modules!
+- Switch to imports (duh)
+- Preserve the same behavior
+- Preserve our public API
+
+All while the team is still working!
+
+Oh, and also...
 
 ---
 
-# TS is big!
+# TS is huge!
 
 <LightOrDark>
 <template #dark><TSReleaseByLines theme="dark" /></template>
