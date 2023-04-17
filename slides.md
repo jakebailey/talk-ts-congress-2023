@@ -1,8 +1,10 @@
 ---
+# theme: academic
 layout: cover
+css: unocss
 ---
 
-# Converting TypeScript to Modules
+# TypeScript's Transition to Modules
 
 ## Jake Bailey
 
@@ -16,6 +18,7 @@ layout: cover
 - What does it mean to "switch to modules"?
 - How did we do it?
 - How did it go?
+- What's next?
 
 ---
 
@@ -39,3 +42,30 @@ Oh, and also...
 <template #dark><TSReleaseByLines theme="dark" /></template>
 <template #light><TSReleaseByLines theme="light" /></template>
 </LightOrDark>
+
+<!-- So, any solution will need to scale up. -->
+
+---
+
+# So, what even _are_ modules?
+
+- Modules are a _syntax_ (`import`, `export`)
+- Modules are an _output format_ (CJS, ESM, System, AMD, UMD, IIFE, ...)
+- Modules are _individual files_... except when they're not!
+
+---
+
+TODO: timeline of module formats, syntax, TS releases
+
+---
+
+todo...
+
+---
+
+# The conversion process
+
+```mermaid
+flowchart LR
+    patches[Manual patches] --> unindent[Unindent]
+```
