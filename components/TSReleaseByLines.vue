@@ -76,7 +76,7 @@ export default {
           {
             label: "Lines of code in 'src'",
             backgroundColor: this.theme === "dark" ? "#ff5722" : "#285577",
-            borderColor: this.theme === "dark" ? "#451100" : "#91bada",
+            borderColor: this.theme === "dark" ? "#653100" : "#91bada",
             data: data.map((x) => x[1]),
           },
           //   {
@@ -87,8 +87,8 @@ export default {
           //   },
           {
             label: "Lines of code in 'checker.ts'",
-            backgroundColor: this.theme === "dark" ? "lightgrey" : undefined,
-            borderColor: this.theme === "dark" ? "grey" : undefined,
+            backgroundColor: this.theme === "dark" ? "lightgrey" : "grey",
+            borderColor: this.theme === "dark" ? "grey" : "lightgrey",
             data: data.map((x) => x[3]),
           },
         ],
