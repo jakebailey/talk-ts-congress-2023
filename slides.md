@@ -1,10 +1,10 @@
 ---
-# theme: academic
-layout: cover
 css: unocss
+highlighter: shiki
+canvasWidth: 800
 ---
 
-# TypeScript's Transition to Modules
+# Migrating TypeScript to Modules
 
 ## Jake Bailey
 
@@ -19,6 +19,78 @@ css: unocss
 - How did we do it?
 - How did it go?
 - What's next?
+
+---
+
+# What even _are_ modules?
+
+If I'm going to talk about "switching to modules", what am I even talking about?
+
+- Modules are a _syntax_ (`import`, `export`)
+- Modules are an _output format_ (CommonJS, ESM, SystemJS, AMD, UMD, IIFE, ...)
+- Modules are _individual files_... except when they're not!
+
+```ts
+// @filename: src/someFile.ts
+export function sayHello(name: string) {
+    console.log(`Hello, ${name}!`);
+}
+
+// @filename: src/index.ts
+import { sayHello } from "./someFile.js";
+
+sayHello("TS Congress");
+```
+
+<v-click>
+<Arrow x1="600" y1="144" x2="450" y2="144" color="orangered" />
+</v-click>
+
+---
+
+# What does it mean to "switch to modules"?
+
+To explain that, we'll need to give some history...
+
+---
+
+# TypeScript as of v4.9
+
+Namespaces!
+
+```ts
+// @filename: src/compiler/parser.ts
+namespace ts {
+    export function createSourceFile(sourceText: string): SourceFile {/* ... */}
+}
+
+// @filename: src/compiler/program.ts
+namespace ts {
+    export function createProgram(): Program {
+        const sourceFile = createSourceFile(text);
+    }
+}
+```
+
+---
+
+# Actually, before TS 1.5...
+
+Surprise! These were called _modules!_
+
+```ts
+// @filename: src/compiler/parser.ts
+module ts {
+    export function createSourceFile(sourceText: string): SourceFile {/* ... */}
+}
+
+// @filename: src/compiler/program.ts
+module ts {
+    export function createProgram(): Program {
+        const sourceFile = createSourceFile(text);
+    }
+}
+```
 
 ---
 
@@ -44,14 +116,6 @@ Oh, and also...
 </LightOrDark>
 
 <!-- So, any solution will need to scale up. -->
-
----
-
-# So, what even _are_ modules?
-
-- Modules are a _syntax_ (`import`, `export`)
-- Modules are an _output format_ (CJS, ESM, System, AMD, UMD, IIFE, ...)
-- Modules are _individual files_... except when they're not!
 
 ---
 

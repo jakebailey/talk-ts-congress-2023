@@ -65,8 +65,9 @@ export default {
       ["v4.7", 254559, 179279, 36478],
       ["v4.8", 257766, 183611, 37028],
       ["v4.9", 259055, 185610, 37374],
-      ["v5.0", 283948, 206089, 39501],
-      ["main", 283129, 208990, 39701],
+      // ["v5.0", 283948, 206089, 39501],
+      // ["v5.1", 283371, 209204, 39741],
+      // ["main", 283129, 208990, 39701],
     ];
 
     return {
@@ -79,12 +80,12 @@ export default {
             borderColor: this.theme === "dark" ? "#653100" : "#91bada",
             data: data.map((x) => x[1]),
           },
-          //   {
-          //     label: "Lines of code (without testing infrastructure)",
-          //     backgroundColor: this.theme === "dark" ? "lightgrey" : undefined,
-          //     borderColor: this.theme === "dark" ? "grey" : undefined,
-          //     data: data.map((x) => x[2]),
-          //   },
+          // {
+          //   label: "Lines of code (without testing infrastructure)",
+          //   backgroundColor: this.theme === "dark" ? "lightgrey" : undefined,
+          //   borderColor: this.theme === "dark" ? "grey" : undefined,
+          //   data: data.map((x) => x[2]),
+          // },
           {
             label: "Lines of code in 'checker.ts'",
             backgroundColor: this.theme === "dark" ? "lightgrey" : "grey",

@@ -39,6 +39,7 @@ versions=(
     v4.8.4
     v4.9.5
     v5.0.4
+    # upstream/release-5.1
     main
 )
 
@@ -48,7 +49,7 @@ for i in $versions; do
     git clean -fdx . >& /dev/null
     git switch --detach $i >& /dev/null
     git restore . &> /dev/null
-    git clean -fdx . >& /dev/null
+    git clean -fdx -e '.vscode' . >& /dev/null
     echo -n "[\"$i\", "
     echo -n "$(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json -e lib src | jq '.Total.code'), "
     echo -n "$(tokei --no-ignore-dot --no-ignore-parent --no-ignore-vcs --output json -e lib -e harness -e testRunner -e loggedIO src | jq '.Total.code'), "
