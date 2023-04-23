@@ -7,13 +7,13 @@
         "export": "slidev export --with-clicks"
     },
     "dependencies": {
-        "@slidev/cli": "^0.40.13",
-        "@slidev/theme-default": "*",
+        "@slidev/cli": "^0.40.14",
+        "@slidev/theme-default": "^0.21.2",
         "chart.js": "^4.2.1",
         "vue-chartjs": "^5.2.0"
     },
     "devDependencies": {
-        "@types/node": "^18.15.11",
+        "@types/node": "^18.15.13",
         "dprint": "^0.36.0",
         "playwright-chromium": "^1.32.3",
         "typescript": "^5.0.4"

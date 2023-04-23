@@ -1,4 +1,12 @@
 {
     "editor.defaultFormatter": "dprint.dprint",
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "cSpell.words": [
+        "dprint",
+        "IIFE",
+        "jakebailey",
+        "shiki",
+        "unocss"
+    ]
 }
