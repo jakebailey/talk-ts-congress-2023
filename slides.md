@@ -148,7 +148,6 @@ var ts;
     function createSourceFile(sourceText) {/* ... */}
     ts.createSourceFile = createSourceFile;
 })(ts || (ts = {}));
-
 (function(ts) {
     function createProgram() {
         const sourceFile = ts.createSourceFile(text);
@@ -193,7 +192,8 @@ if (typeof module !== "undefined" && module.exports) {
 
 # But...
 
-- Every access to something defined in another file is a property access.
+- Every access to something defined in another file is an object property
+  access.
   - This runtime cost adds up!
 - We completely miss out "dogfooding" our own module experience.
   - Resolution modes
@@ -211,13 +211,12 @@ clicks: 3 # Hack; default is miscounted as 6
 
 # What if we were modules?
 
-```ts {|2|5,6|9}
+```ts {|2|5|8}
 // @filename: src/compiler/parser.ts
 export function createSourceFile(sourceText: string): SourceFile {/* ... */}
 
 // @filename: src/compiler/program.ts
 import { createSourceFile } from "./parser";
-import { Program } from "./types";
 
 export function createProgram(): Program {
     const sourceFile = createSourceFile(text);
@@ -234,7 +233,7 @@ export function createProgram(): Program {
 
 ---
 
-# Goals
+# Great! Let's do it.
 
 How can we...
 
@@ -259,8 +258,40 @@ _Oh, and also..._
 
 ---
 
-TODO: timeline of module formats, syntax, TS releases
+# If TS is so huge, how can we do it?
+
+Certainly not by hand!
+
+- We'll _programmatically_ transform the codebase.
+- Perform the operations we _would_ have done by hand.
+- Using `ts-morph` for TS to TS transformation.
+- Break things into steps so we can see what's going on.
+  - More importantly, so `git` can see what's going on!
+- https://github.com/jakebailey/typeformer
 
 ---
 
-todo...
+# Step 1: Dedent
+
+- All of our code is going to be outside `namespace` at the top level.
+- Do this early, so `git` can still trace the code back before the migration.
+
+From:
+
+```ts
+namespace ts {
+    export function createSourceFile(): SourceFile {/* ... */}
+}
+```
+
+Into:
+
+<!-- dprint-ignore-start -->
+
+```ts
+namespace ts {
+export function createSourceFile(): SourceFile {/* ... */}
+}
+```
+
+<!-- dprint-ignore-end -->
