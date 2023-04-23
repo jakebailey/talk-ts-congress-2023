@@ -2,6 +2,10 @@
 css: unocss
 highlighter: shiki
 canvasWidth: 800
+favicon: /favicon.ico
+download: true
+exportFilename: slides
+lineNumbers: true
 ---
 
 # Migrating TypeScript to Modules
@@ -155,11 +159,47 @@ var ts;
 
 <v-clicks at="0">
 
-- Namespaces are "plain ol JavaScript objects".
-- Exported declarations are added to the namespace object.
-- Implicit "imports" become object accesses!
+- Namespaces are "plain old JavaScript objects" plus a little function scoping.
+- Exported declarations are properties on the namespace object.
+- Implicit "imports" become object accesses. (Surprise!)
 
 </v-clicks>
+
+---
+
+# Namespaces have some upsides
+
+<v-clicks depth="2">
+
+- With namespaces, we don't have to write imports, ever! 😅
+  - Everything _feels_ local.
+  - New code doesn't need to be imported.
+  - Moving code from one file to another doesn't require modifying imports.
+- Plain objects let us use clever tricks to support multiple environments.
+
+</v-clicks>
+
+<v-after>
+```ts
+var ts;
+// If we're in CommonJS, export `ts`, but in <script>, `ts` is global!
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = ts;
+}
+```
+</v-after>
+
+---
+
+# But...
+
+- Every access to something defined in another file is a property access.
+  - This runtime cost adds up!
+- We completely miss out "dogfooding" our own module experience.
+  - Resolution modes
+  - Auto-imports
+  - Import sorting/organization
+- We can't use any tooling that needs imports, or that skips `tsc`.
 
 <!-- dprint-ignore-start -->
 
@@ -169,7 +209,7 @@ clicks: 3 # Hack; default is miscounted as 6
 
 <!-- dprint-ignore-end -->
 
-# What's the end goal?
+# What if we were modules?
 
 ```ts {|2|5,6|9}
 // @filename: src/compiler/parser.ts
@@ -188,7 +228,7 @@ export function createProgram(): Program {
 
 - Declarations are still exported with `export`.
 - External declarations are _explicitly_ imported with `import`.
-- Imported declarations "look" local (just like they did before).
+- Imported declarations "look" local (just like before).
 
 </v-clicks>
 

@@ -3,10 +3,13 @@
     "editor.formatOnSave": true,
     "typescript.tsdk": "node_modules/typescript/lib",
     "cSpell.words": [
+        "chartjs",
         "dprint",
         "IIFE",
         "jakebailey",
         "shiki",
+        "slidev",
+        "typeof",
         "unocss"
     ]
 }
