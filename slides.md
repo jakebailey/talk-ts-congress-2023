@@ -837,3 +837,56 @@ As `main` updates, we can rebase and rerun each of these automated steps. This
 lets the team continue working until the moment we're ready to go.
 
 But, there are still lots of fiddly bits left.
+
+---
+
+# Manual changes
+
+## 
+
+After the automation, there were _29_ manual changes (stored in patches for
+`git am`).
+
+Let's go over some highlights.
+
+---
+
+# Bundling with `esbuild`
+
+TODO
+
+---
+
+# `d.ts` bundling
+
+TODO
+
+---
+
+# Full build rewrite
+
+TODO
+
+---
+
+# How did it go?
+
+TODO
+
+- Performance boost from hoisting
+- Package size reduction (graph)
+- Raised target, slowdown from `let`/`const`, converted some blocks to `var`.
+- Dogfooding
+  - Found auto-import bugs
+  - Improvements to import organization and better ecosystem handling
+  - All because we finally can experience modules.
+
+---
+
+# What's next?
+
+TODO
+
+- Removing cycles from the codebase
+- Shipping ESM for executables (maybe even the API)
+- Minification? (probably not, because patchers)
