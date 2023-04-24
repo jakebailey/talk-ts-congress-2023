@@ -4,12 +4,20 @@
     "typescript.tsdk": "node_modules/typescript/lib",
     "cSpell.words": [
         "chartjs",
+        "Compat",
+        "dogfooding",
+        "dpdm",
         "dprint",
         "IIFE",
+        "indirecting",
         "jakebailey",
         "shiki",
         "slidev",
+        "tsbuild",
+        "tsserverlibrary",
+        "typechecks",
         "typeof",
-        "unocss"
+        "unocss",
+        "webworker"
     ]
 }

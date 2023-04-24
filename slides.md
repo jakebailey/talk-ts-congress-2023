@@ -19,7 +19,7 @@ lineNumbers: true
 
 <br>
 
-jakebailey.dev/talk-ts-congress-2013
+[jakebailey.dev/talk-ts-congress-2013](https://jakebailey.dev/talk-ts-congress-2013)
 
 <style>
     p {
@@ -54,7 +54,7 @@ export function sayHello(name: string) {
 }
 
 // @filename: src/index.ts
-import { sayHello } from "./someFile.js";
+import { sayHello } from "./someFile";
 
 sayHello("TypeScript Congress");
 ```
@@ -258,29 +258,52 @@ _Oh, and also..._
 
 ---
 
-# If TS is so huge, how can we do it?
+# If TS is so huge, how can we migrate?
 
 Certainly not by hand!
 
 - We'll _programmatically_ transform the codebase.
 - Perform the operations we _would_ have done by hand.
-- Using `ts-morph` for TS to TS transformation.
+- Use `ts-morph` for TS to TS transformation.
 - Break things into steps so we can see what's going on.
   - More importantly, so `git` can see what's going on!
-- https://github.com/jakebailey/typeformer
+- Code: https://github.com/jakebailey/typeformer
+- Follow along at: https://github.com/jakebailey/typescript/pull/1
 
 ---
 
-# Step 1: Dedent
+# Step 0: Get everything loadable
 
-- All of our code is going to be outside `namespace` at the top level.
+- We're using `ts-morph` to do the transformation.
+- `ts-morph` only supports a single "project" at at time.
+- Loading `src/**/*.ts` gives us compiler errors due to our browser compat code.
+- We can just remove the offending code and revert the change afterwards.
+
+```diff
+-/// <reference lib="webworker" />
+-
+ namespace ts.server {
++    declare const addEventListener: any;
++    declare const postMessage: any;
++    declare const close: any;
++    declare const location: any;
++    declare const XMLHttpRequest: any;
++    declare const self: any;
+```
+
+---
+
+# Step 1: Unindent
+
+- We're moving all of our code up one block, and so there's one fewer
+  indentation!
 - Do this early, so `git` can still trace the code back before the migration.
 
 From:
 
 ```ts
 namespace ts {
-    export function createSourceFile(): SourceFile {/* ... */}
+    export function createSourceFile(sourceText: string): SourceFile {/* ... */}
 }
 ```
 
@@ -290,8 +313,527 @@ Into:
 
 ```ts
 namespace ts {
-export function createSourceFile(): SourceFile {/* ... */}
+export function createSourceFile(sourceText: string): SourceFile {/* ... */}
 }
 ```
 
 <!-- dprint-ignore-end -->
+
+---
+
+# Step 2: Make namespace accesses explicit
+
+## 
+
+This makes it easier to figure out imports later.
+
+From:
+
+```ts
+export function createSourceFile(sourceText: string): SourceFile {
+    const scanner = createScanner(sourceText);
+}
+```
+
+Into:
+
+```ts
+export function createSourceFile(sourceText: string): ts.SourceFile {
+    const scanner = ts.createScanner(sourceText);
+}
+```
+
+---
+
+# Step 3: Strip namespaces (the big one!)
+
+## 
+
+Given:
+
+<!-- dprint-ignore-start -->
+
+```ts
+namespace ts {
+export function createSourceFile(sourceText: string): ts.SourceFile {
+    const scanner = ts.createScanner(sourceText);
+}
+}
+```
+
+<!-- dprint-ignore-end -->
+
+We'll convert this into:
+
+```ts
+import * as ts from "./_namespaces/ts";
+
+export function createSourceFile(sourceText: string): ts.SourceFile {
+    const scanner = ts.createScanner(sourceText);
+}
+```
+
+---
+
+# `_namespaces`?
+
+## 
+
+_Ideally_, we'd actually want to write:
+
+```ts
+import { SourceFile } from "./types";
+import { createScanner } from "./scanner";
+
+export function createSourceFile(sourceText: string): SourceFile {
+    const scanner = createScanner(sourceText);
+}
+```
+
+But, there's a problem.
+
+---
+
+# TypeScript is _cyclic!_
+
+```mermaid
+graph TD
+    builder.ts --> builderState.ts
+    builder.ts --> debug.ts
+    builder.ts --> builderPublic.ts
+    builder.ts --> watchPublic.ts
+    builderPublic.ts --> builder.ts
+    builderState.ts --> moduleNameResolver.ts
+    builderState.ts --> debug.ts
+    commandLineParser.ts --> debug.ts
+    commandLineParser.ts --> sys.ts
+    commandLineParser.ts --> tsbuildPublic.ts
+    commandLineParser.ts --> utilities.ts
+    commandLineParser.ts --> tracing.ts
+    core.ts --> debug.ts
+    debug.ts --> core.ts
+    debug.ts --> utilities.ts
+    emitter.ts --> debug.ts
+    emitter.ts --> performance.ts
+    emitter.ts --> tracing.ts
+    emitter.ts --> builder.ts
+    emitter.ts --> utilities.ts
+    moduleNameResolver.ts --> debug.ts
+    moduleNameResolver.ts --> semver.ts
+    moduleNameResolver.ts --> program.ts
+    moduleSpecifiers.ts --> utilities.ts
+    moduleSpecifiers.ts --> debug.ts
+    moduleSpecifiers.ts --> moduleNameResolver.ts
+    parser.ts --> utilities.ts
+    parser.ts --> factory/nodeFactory.ts
+    parser.ts --> tracing.ts
+    parser.ts --> performance.ts
+    parser.ts --> debug.ts
+    parser.ts --> scanner.ts
+    parser.ts --> core.ts
+    path.ts --> debug.ts
+    performance.ts --> debug.ts
+    performance.ts --> sys.ts
+    program.ts --> emitter.ts
+    program.ts --> transformers/declarations.ts
+    program.ts --> path.ts
+    program.ts --> performance.ts
+    program.ts --> sys.ts
+    program.ts --> parser.ts
+    program.ts --> builderPublic.ts
+    program.ts --> debug.ts
+    program.ts --> moduleNameResolver.ts
+    program.ts --> tracing.ts
+    program.ts --> utilities.ts
+    program.ts --> core.ts
+    program.ts --> semver.ts
+    program.ts --> watchUtilities.ts
+    resolutionCache.ts --> moduleNameResolver.ts
+    resolutionCache.ts --> sys.ts
+    resolutionCache.ts --> debug.ts
+    resolutionCache.ts --> program.ts
+    resolutionCache.ts --> core.ts
+    resolutionCache.ts --> watchUtilities.ts
+    scanner.ts --> debug.ts
+    semver.ts --> debug.ts
+    sys.ts --> debug.ts
+    sys.ts --> core.ts
+    sys.ts --> utilities.ts
+    tracing.ts --> debug.ts
+    tracing.ts --> performance.ts
+    tsbuildPublic.ts --> emitter.ts
+    tsbuildPublic.ts --> sys.ts
+    tsbuildPublic.ts --> path.ts
+    tsbuildPublic.ts --> program.ts
+    tsbuildPublic.ts --> watchPublic.ts
+    tsbuildPublic.ts --> moduleNameResolver.ts
+    tsbuildPublic.ts --> performance.ts
+    tsbuildPublic.ts --> commandLineParser.ts
+    tsbuildPublic.ts --> watchUtilities.ts
+    tsbuildPublic.ts --> debug.ts
+    tsbuildPublic.ts --> builderPublic.ts
+    tsbuildPublic.ts --> builder.ts
+    tsbuildPublic.ts --> watch.ts
+    utilities.ts --> moduleNameResolver.ts
+    utilities.ts --> debug.ts
+    utilities.ts --> program.ts
+    utilities.ts --> scanner.ts
+    utilities.ts --> utilitiesPublic.ts
+    utilities.ts --> commandLineParser.ts
+    utilities.ts --> sys.ts
+    utilities.ts --> core.ts
+    utilitiesPublic.ts --> debug.ts
+    watch.ts --> sys.ts
+    watch.ts --> program.ts
+    watch.ts --> commandLineParser.ts
+    watch.ts --> tsbuildPublic.ts
+    watch.ts --> builderPublic.ts
+    watch.ts --> moduleNameResolver.ts
+    watch.ts --> debug.ts
+    watch.ts --> watchUtilities.ts
+    watch.ts --> watchPublic.ts
+    watchPublic.ts --> path.ts
+    watchPublic.ts --> sys.ts
+    watchPublic.ts --> watchUtilities.ts
+    watchPublic.ts --> debug.ts
+    watchPublic.ts --> watch.ts
+    watchPublic.ts --> resolutionCache.ts
+    watchPublic.ts --> builderPublic.ts
+    watchPublic.ts --> commandLineParser.ts
+    watchUtilities.ts --> path.ts
+    watchUtilities.ts --> debug.ts
+    watchUtilities.ts --> sys.ts
+    watchUtilities.ts --> builderPublic.ts
+    watchUtilities.ts --> builderState.ts
+    factory/baseNodeFactory.ts --> utilities.ts
+    factory/nodeFactory.ts --> debug.ts
+    factory/nodeFactory.ts --> factory/baseNodeFactory.ts
+    factory/nodeFactory.ts --> scanner.ts
+    factory/nodeFactory.ts --> utilitiesPublic.ts
+    factory/nodeFactory.ts --> utilities.ts
+    transformers/declarations.ts --> debug.ts
+    transformers/declarations.ts --> transformers/declarations/diagnostics.ts
+    transformers/declarations.ts --> utilities.ts
+    transformers/declarations.ts --> moduleSpecifiers.ts
+    transformers/declarations/diagnostics.ts --> utilitiesPublic.ts
+    transformers/declarations/diagnostics.ts --> debug.ts
+```
+
+Everything above is a part of a cycle!
+
+---
+
+# TypeScript is _cyclic!_
+
+```mermaid
+graph TD
+    builder.ts ~~~ builderState.ts
+    builder.ts ~~~ debug.ts
+    builder.ts ~~~ builderPublic.ts
+    builder.ts ~~~ watchPublic.ts
+    builderPublic.ts ~~~ builder.ts
+    builderState.ts ~~~ moduleNameResolver.ts
+    builderState.ts ~~~ debug.ts
+    commandLineParser.ts ~~~ debug.ts
+    commandLineParser.ts ~~~ sys.ts
+    commandLineParser.ts ~~~ tsbuildPublic.ts
+    commandLineParser.ts ~~~ utilities.ts
+    commandLineParser.ts ~~~ tracing.ts
+    core.ts ~~~ debug.ts
+    debug.ts ~~~ core.ts
+    debug.ts ==> utilities.ts
+    emitter.ts ~~~ debug.ts
+    emitter.ts ~~~ performance.ts
+    emitter.ts ~~~ tracing.ts
+    emitter.ts ~~~ builder.ts
+    emitter.ts ~~~ utilities.ts
+    moduleNameResolver.ts ~~~ debug.ts
+    moduleNameResolver.ts ~~~ semver.ts
+    moduleNameResolver.ts ~~~ program.ts
+    moduleSpecifiers.ts ~~~ utilities.ts
+    moduleSpecifiers.ts ~~~ debug.ts
+    moduleSpecifiers.ts ~~~ moduleNameResolver.ts
+    parser.ts ~~~ utilities.ts
+    parser.ts ~~~ factory/nodeFactory.ts
+    parser.ts ~~~ tracing.ts
+    parser.ts ~~~ performance.ts
+    parser.ts ~~~ debug.ts
+    parser.ts ==> scanner.ts
+    parser.ts ~~~ core.ts
+    path.ts ~~~ debug.ts
+    performance.ts ~~~ debug.ts
+    performance.ts ~~~ sys.ts
+    program.ts ~~~ emitter.ts
+    program.ts ~~~ transformers/declarations.ts
+    program.ts ~~~ path.ts
+    program.ts ~~~ performance.ts
+    program.ts ~~~ sys.ts
+    program.ts ==> parser.ts
+    program.ts ~~~ builderPublic.ts
+    program.ts ~~~ debug.ts
+    program.ts ~~~ moduleNameResolver.ts
+    program.ts ~~~ tracing.ts
+    program.ts ~~~ utilities.ts
+    program.ts ~~~ core.ts
+    program.ts ~~~ semver.ts
+    program.ts ~~~ watchUtilities.ts
+    resolutionCache.ts ~~~ moduleNameResolver.ts
+    resolutionCache.ts ~~~ sys.ts
+    resolutionCache.ts ~~~ debug.ts
+    resolutionCache.ts ~~~ program.ts
+    resolutionCache.ts ~~~ core.ts
+    resolutionCache.ts ~~~ watchUtilities.ts
+    scanner.ts ==> debug.ts
+    semver.ts ~~~ debug.ts
+    sys.ts ~~~ debug.ts
+    sys.ts ~~~ core.ts
+    sys.ts ~~~ utilities.ts
+    tracing.ts ~~~ debug.ts
+    tracing.ts ~~~ performance.ts
+    tsbuildPublic.ts ~~~ emitter.ts
+    tsbuildPublic.ts ~~~ sys.ts
+    tsbuildPublic.ts ~~~ path.ts
+    tsbuildPublic.ts ~~~ program.ts
+    tsbuildPublic.ts ~~~ watchPublic.ts
+    tsbuildPublic.ts ~~~ moduleNameResolver.ts
+    tsbuildPublic.ts ~~~ performance.ts
+    tsbuildPublic.ts ~~~ commandLineParser.ts
+    tsbuildPublic.ts ~~~ watchUtilities.ts
+    tsbuildPublic.ts ~~~ debug.ts
+    tsbuildPublic.ts ~~~ builderPublic.ts
+    tsbuildPublic.ts ~~~ builder.ts
+    tsbuildPublic.ts ~~~ watch.ts
+    utilities.ts ~~~ moduleNameResolver.ts
+    utilities.ts ~~~ debug.ts
+    utilities.ts ==> program.ts
+    utilities.ts ~~~ scanner.ts
+    utilities.ts ~~~ utilitiesPublic.ts
+    utilities.ts ~~~ commandLineParser.ts
+    utilities.ts ~~~ sys.ts
+    utilities.ts ~~~ core.ts
+    utilitiesPublic.ts ~~~ debug.ts
+    watch.ts ~~~ sys.ts
+    watch.ts ~~~ program.ts
+    watch.ts ~~~ commandLineParser.ts
+    watch.ts ~~~ tsbuildPublic.ts
+    watch.ts ~~~ builderPublic.ts
+    watch.ts ~~~ moduleNameResolver.ts
+    watch.ts ~~~ debug.ts
+    watch.ts ~~~ watchUtilities.ts
+    watch.ts ~~~ watchPublic.ts
+    watchPublic.ts ~~~ path.ts
+    watchPublic.ts ~~~ sys.ts
+    watchPublic.ts ~~~ watchUtilities.ts
+    watchPublic.ts ~~~ debug.ts
+    watchPublic.ts ~~~ watch.ts
+    watchPublic.ts ~~~ resolutionCache.ts
+    watchPublic.ts ~~~ builderPublic.ts
+    watchPublic.ts ~~~ commandLineParser.ts
+    watchUtilities.ts ~~~ path.ts
+    watchUtilities.ts ~~~ debug.ts
+    watchUtilities.ts ~~~ sys.ts
+    watchUtilities.ts ~~~ builderPublic.ts
+    watchUtilities.ts ~~~ builderState.ts
+    factory/baseNodeFactory.ts ~~~ utilities.ts
+    factory/nodeFactory.ts ~~~ debug.ts
+    factory/nodeFactory.ts ~~~ factory/baseNodeFactory.ts
+    factory/nodeFactory.ts ~~~ scanner.ts
+    factory/nodeFactory.ts ~~~ utilitiesPublic.ts
+    factory/nodeFactory.ts ~~~ utilities.ts
+    transformers/declarations.ts ~~~ debug.ts
+    transformers/declarations.ts ~~~ transformers/declarations/diagnostics.ts
+    transformers/declarations.ts ~~~ utilities.ts
+    transformers/declarations.ts ~~~ moduleSpecifiers.ts
+    transformers/declarations/diagnostics.ts ~~~ utilitiesPublic.ts
+    transformers/declarations/diagnostics.ts ~~~ debug.ts
+```
+
+Everything above is a part of a cycle! &nbsp; &nbsp; (Here's just one of them.)
+
+<!-- So, to fix this, we need to get fancy. -->
+
+---
+
+# Introducing... "namespace barrels"
+
+- Our old runtime order was defined by the `files` array in `tsconfig.json`.
+- We either need to fix the cycles or try and emulate that behavior.
+  - The latter is easier!
+
+```ts
+// @filename: src/compiler/_namespaces/ts.ts
+export * from "../core"; // In the order specified in tsconfig.json
+export * from "../corePublic";
+export * from "../debug";
+// ...
+
+// @filename: src/compiler/checker.ts
+import * as ts from "./_namespaces/ts";
+```
+
+These namespace barrels help define execution order, and provide us with a `ts`
+object that looks like the old namespace object at runtime.
+
+---
+
+# Nested "namespace barrels"
+
+## 
+
+Namespaces can be nested, like:
+
+```ts
+// @filename: src/compiler/performance.ts
+namespace ts.performance {
+    export function mark(label: string) {/* ... */}
+}
+```
+
+This too can be emulated using reexports:
+
+```ts
+// @filename: src/compiler/_namespaces/ts.ts
+export * as performance from "./ts.performance";
+
+// @filename: src/compiler/_namespaces/ts.performance.ts;
+export * from "../performance";
+
+// @filename: src/compiler/performance.ts
+export function mark(label: string) {/* ... */}
+```
+
+---
+
+# Merging "namespace barrels"
+
+## 
+
+To emulate project references and `prepend`, we can merge modules!
+
+```ts
+// @filename: src/server/_namespaces/ts.ts
+export * from "../../compiler/_namespaces/ts";
+export * from "../../services/_namespaces/ts";
+export * from "../../deprecatedCompat/_namespaces/ts";
+
+// @filename: src/server/project.ts
+import * as ts from "./_namespaces/ts";
+```
+
+This namespace import provides a "view" that mimics the `ts` namespace we used
+to observe before modules.
+
+---
+
+# Also, this gives us our public API!
+
+## 
+
+Say, `typescript.js`.
+
+```ts
+// @filename: src/typescript/_namespaces/ts.ts
+export * from "../../compiler/_namespaces/ts";
+export * from "../../services/_namespaces/ts";
+export * from "../../deprecatedCompat/_namespaces/ts";
+
+// @filename: src/typescript/typescript.ts
+import * as ts from "./_namespace/ts";
+export = ts; // <-- This is what API consumers see!
+```
+
+---
+
+# Also, this gives us our public API!
+
+## 
+
+Or, `tsserverlibrary.js`.
+
+```ts
+// @filename: src/tsserverlibrary/_namespaces/ts.ts
+export * from "../../compiler/_namespaces/ts";
+export * from "../../services/_namespaces/ts";
+export * from "../../server/_namespaces/ts";
+import * as server from "./ts.server";
+export { server };
+
+// @filename: src/tsserverlibrary/tsserverlibrary.ts
+import * as ts from "./_namespace/ts";
+export = ts; // <-- This is what API consumers see!
+```
+
+---
+
+# Anyway...
+
+## 
+
+Now that we have an idea of where we're going, the transform should:
+
+- Determine which namespace the file defined.
+- Determine which namespaces need to be imported.
+- Create the `_namespace` files, reexporting their contents.
+- Lift all code out of `namespace` blocks, then delete the `namespace`.
+- Insert imports at the top.
+- Drop all of the dead `tsconfig.json` configuration (`prepend`, `outFile`).
+
+Afterwards, we're left with a codebase which compiles without error! 🎉
+
+---
+
+# Step 4: Inline imports
+
+## 
+
+After step 3, we're left with fully qualified imports, like:
+
+```ts
+import * as ts from "./_namespaces/ts";
+
+export function createSourceFile(sourceText: string): ts.SourceFile {
+    const scanner = ts.createScanner(sourceText);
+}
+```
+
+This step transforms the above into:
+
+```ts
+import { createScanner, SourceFile } from "./_namespaces/ts";
+
+export function createSourceFile(sourceText: string): SourceFile {
+    const scanner = createScanner(sourceText);
+}
+```
+
+---
+
+# Step 4: Inline imports, cont.
+
+- This is _almost_ our desired code, just indirecting through "namespace
+  barrels".
+- But, that's a good tradeoff for now!
+  - With imports, we can use tools like `madge` or `dpdm` to find cycles.
+
+<!-- TODO: spacing -->
+
+```ts
+import { createScanner, SourceFile } from "./_namespaces/ts";
+
+export function createSourceFile(sourceText: string): SourceFile {
+    const scanner = createScanner(sourceText);
+}
+```
+
+---
+
+# ... and then draw the rest of the owl
+
+## 
+
+At this point, all of the hard work is done!
+
+As `main` updates, we can rebase and rerun each of these automated steps. This
+lets the team continue working until the moment we're ready to go.
+
+But, there are still lots of fiddly bits left.
