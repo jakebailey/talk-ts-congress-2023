@@ -838,7 +838,7 @@ lets the team continue working until the moment we're ready to go.
 
 But, there are still lots of fiddly bits left.
 
-<img src="/draw_owl.jpg">
+<img src="/img/draw_owl.jpg">
 <!-- <LightOrDark>
 <template #dark><img class="inverted" src="/draw_owl.jpg"></template>
 <template #light><img src="/draw_owl.jpg"></template>
