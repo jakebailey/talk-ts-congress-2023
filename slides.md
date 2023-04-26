@@ -142,7 +142,7 @@ clicks: 3 # Hack; default is miscounted as 6
 
 <!-- When combined with `outFile`, this gives: -->
 
-```ts {|1,2,5,7,12|3,4|9}
+```ts {|1,2,5,6,11|3,4|8}
 var ts;
 (function(ts) {
     function createSourceFile(sourceText) {/* ... */}
@@ -838,6 +838,23 @@ lets the team continue working until the moment we're ready to go.
 
 But, there are still lots of fiddly bits left.
 
+<img src="/draw_owl.jpg">
+<!-- <LightOrDark>
+<template #dark><img class="inverted" src="/draw_owl.jpg"></template>
+<template #light><img src="/draw_owl.jpg"></template>
+</LightOrDark> -->
+
+<style>
+img {
+    height: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.inverted {
+    filter: invert(1);
+}
+</style>
+
 ---
 
 # Manual changes
@@ -849,17 +866,25 @@ After the automation, there were _29_ manual changes (stored in patches for
 
 Let's go over some highlights.
 
+<!-- TODO: maybe just link to the blog post -->
+
 ---
 
 # Bundling with `esbuild`
 
-TODO
+- Our old outputs were a handful of bundles produced by `outFile`; people depend
+  on that.
+- Lots of bundlers to choose from; we went with `esbuild`.
+- Supports scope hoisting, tree shaking, and is pretty easy to work with.
 
 ---
 
 # `d.ts` bundling
 
-TODO
+- Along with "bundled" `.js` files, `outFile` also produced `.d.ts` files.
+- For backwards compatibility, we have to reproduce these `d.ts` files.
+- We ended up rolling our own bundler.
+- Definitely not for external use; it's very specific to our API.
 
 ---
 
@@ -867,12 +892,19 @@ TODO
 
 TODO
 
+- Our old build was a set of `gulp`'s `series` and `parallel`.
+- I had a difficult time getting it into shape.
+- Build completely replaced with a new task runner which uses an explicit
+  dependency graph.
+- It's called `hereby`, don't use it, thanks.
+
 ---
 
 # How did it go?
 
 TODO
 
+- Core development loop performance boost
 - Performance boost from hoisting
 - Package size reduction (graph)
 - Raised target, slowdown from `let`/`const`, converted some blocks to `var`.
@@ -890,3 +922,13 @@ TODO
 - Removing cycles from the codebase
 - Shipping ESM for executables (maybe even the API)
 - Minification? (probably not, because patchers)
+
+---
+
+# Thanks for watching!
+
+<br>
+<br>
+<br>
+
+### Find me at [jakebailey.dev](https://jakebailey.dev)
