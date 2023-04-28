@@ -1,7 +1,7 @@
 ---
 css: unocss
 highlighter: shiki
-canvasWidth: 800
+canvasWidth: 850
 favicon: /favicon.ico
 download: true
 exportFilename: slides
@@ -17,6 +17,7 @@ lineNumbers: true
 
 ### Senior Software Engineer, Microsoft
 
+<br>
 <br>
 
 [jakebailey.dev/talk-ts-congress-2013](https://jakebailey.dev/talk-ts-congress-2013)
