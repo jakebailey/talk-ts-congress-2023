@@ -10,12 +10,16 @@ lineNumbers: true
 
 # Migrating TypeScript to Modules
 
+<h2 id="cover-subtitle">The Fine Details</h2>
+
+<br>
+<br>
 <br>
 <br>
 
 ## Jake Bailey
 
-### Senior Software Engineer, Microsoft
+#### Senior Software Engineer, Microsoft
 
 <br>
 <br>
@@ -23,6 +27,15 @@ lineNumbers: true
 [jakebailey.dev/talk-ts-congress-2013](https://jakebailey.dev/talk-ts-congress-2013)
 
 <style>
+    h1 {
+        font-size: 3rem !important;
+        /* margin-bottom: 0 !important; */
+    }
+    #cover-subtitle {
+        font-size: 2rem;
+        font-style: italic;
+        opacity: 0.5;
+    }
     p {
         text-align: right;
     }
