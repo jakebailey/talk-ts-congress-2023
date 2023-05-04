@@ -7,15 +7,15 @@
         "export": "slidev export --with-clicks"
     },
     "dependencies": {
-        "@slidev/cli": "^0.40.14",
+        "@slidev/cli": "^0.40.16",
         "@slidev/theme-default": "^0.21.2",
-        "chart.js": "^4.2.1",
+        "chart.js": "^4.3.0",
         "vue-chartjs": "^5.2.0"
     },
     "devDependencies": {
-        "@types/node": "^18.15.13",
-        "dprint": "^0.36.0",
-        "playwright-chromium": "^1.32.3",
+        "@types/node": "^18.16.3",
+        "dprint": "^0.36.1",
+        "playwright-chromium": "^1.33.0",
         "typescript": "^5.0.4"
     }
 }
