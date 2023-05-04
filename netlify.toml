@@ -3,7 +3,7 @@
 
 [build]
   publish = "dist"
-  command = "pnpm slidev build"
+  command = "pnpm playwright install && pnpm slidev build"
 
 [[redirects]]
   from = "/*"
