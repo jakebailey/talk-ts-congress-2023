@@ -974,9 +974,10 @@ months later, I would have tried `wireit`.
 Great!
 
 - Core development loop performance boost
-- Performance boost from hoisting
-- Package size reduction (graph)
+- Performance boost from hoisting (TODO: numbers)
+- Package size reduction (TODO: graph)
 - Raised target, slowdown from `let`/`const`, converted some blocks to `var`.
+  (TODO: numbers?)
 - Dogfooding!
   - Found auto-import bugs
   - Improvements to import organization and better ecosystem handling
