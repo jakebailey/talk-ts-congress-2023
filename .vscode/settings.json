@@ -15,6 +15,7 @@
         "slidev",
         "tsbuild",
         "tsserverlibrary",
+        "typecheck",
         "typechecks",
         "typeof",
         "unocss",

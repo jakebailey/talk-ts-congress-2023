@@ -973,6 +973,8 @@ months later, I would have tried `wireit`.
 
 Great!
 
+TODO
+
 - Core development loop performance boost
 - Performance boost from hoisting (TODO: numbers)
 - Package size reduction (TODO: graph)
@@ -982,6 +984,32 @@ Great!
   - Found auto-import bugs
   - Improvements to import organization and better ecosystem handling
   - All because we finally can experience modules.
+
+---
+
+# Core development boost
+
+- Since we're using esbuild to do our emit, we can skip typechecking if we want.
+- Our build has a new `--no-typecheck` flag.
+- Starting to debug a test is instant.
+
+---
+
+# Performance boost
+
+TODO
+
+---
+
+# let/const
+
+TODO
+
+---
+
+# Dogfooding
+
+TODO
 
 ---
 
