@@ -18,6 +18,7 @@
         "typechecks",
         "typeof",
         "unocss",
-        "webworker"
+        "webworker",
+        "wireit"
     ]
 }

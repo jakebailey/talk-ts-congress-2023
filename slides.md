@@ -688,6 +688,12 @@ import * as ts from "./_namespaces/ts";
 These namespace barrels help define execution order, and provide us with a `ts`
 object that looks like the old namespace object at runtime.
 
+<!--
+Technically, the execution order of ES module imports like this is undefined.
+But, when using a bundler or emitting to CJS, the order will be kept, which is
+good enough for us.
+ -->
+
 ---
 
 # Nested "namespace barrels"
@@ -779,7 +785,7 @@ export = ts; // <-- This is what API consumers see!
 
 ---
 
-# Anyway...
+# Anyway... Step 3
 
 ## 
 
@@ -796,7 +802,7 @@ Afterwards, we're left with a codebase which compiles without error! 🎉
 
 ---
 
-# Step 4: Inline imports
+# Step 4: Convert to named imports
 
 ## 
 
@@ -822,7 +828,7 @@ export function createSourceFile(sourceText: string): SourceFile {
 
 ---
 
-# Step 4: Inline imports, cont.
+# Step 4: Convert to named imports, cont.
 
 - This is _almost_ our desired code, just indirecting through "namespace
   barrels".
@@ -886,43 +892,89 @@ Let's go over some highlights.
 
 # Bundling with `esbuild`
 
-- Our old outputs were a handful of bundles produced by `outFile`; people depend
-  on that.
+- Our old outputs were a handful of large-ish bundles produced by `outFile`.
+  - People depend on that.
 - Lots of bundlers to choose from; we went with `esbuild`.
-- Supports scope hoisting, tree shaking, and is pretty easy to work with.
+- Obviously, it's fast.
+- Supports scope hoisting, tree shaking, enum inlining, and is pretty easy to
+  work with.
+- Still have to mess around with the output a little... remember this?
+
+```js
+// --format=iife --global-name=ts --footer="if ..."
+var ts (() => {
+    // ...
+    return { /* ... */ };
+})();
+// If we're in CommonJS, export `ts`, but in <script>, `ts` is global!
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = ts;
+}
+```
 
 ---
 
 # `d.ts` bundling
 
-- Along with "bundled" `.js` files, `outFile` also produced `.d.ts` files.
-- For backwards compatibility, we have to reproduce these `d.ts` files.
-- We ended up rolling our own bundler.
+- Along with "bundled" `.js` files, `tsc`'s `outFile` also produced `.d.ts`
+  files.
+  - But now we're using esbuild, which doesn't produce `d.ts` files.
+- We ended up rolling our own (small, very limited) `d.ts` bundler.
 - Definitely not for external use; it's very specific to our API.
+
+```ts
+// Something like...
+namespace ts {
+    function createSourceFile(): SourceFile;
+
+    namespace server {
+        namespace protocol {
+            // ...
+        }
+    }
+}
+export = ts;
+```
 
 ---
 
-# Full build rewrite
+# Complete build overhaul
 
-TODO
+## 
 
-- Our old build was a set of `gulp`'s `series` and `parallel`.
-- I had a difficult time getting it into shape.
-- Build completely replaced with a new task runner which uses an explicit
-  dependency graph.
+- Our old build was `gulp`.
+  - Calls out to `tsc`, streams to modify files, the works.
+  - Complicated web of `series` and `parallel` tasks.
+- New build has all new steps, but removes many others.
+- Build completely replaced, reimplemented in a new task runner!
+  - Plain JS functions with an explicit dependency graph, as parallel as
+    possible.
 - It's called `hereby`, don't use it, thanks.
+
+```ts
+export const buildSrc = task({
+    name: "build-src",
+    description: "Builds the src project (all code)",
+    dependencies: [generateDiagnostics],
+    run: () => buildProject("src"),
+});
+```
+
+<!--
+Old build had been gulp since 2016, `jake` before that.
+ -->
 
 ---
 
 # How did it go?
 
-TODO
+Great!
 
 - Core development loop performance boost
 - Performance boost from hoisting
 - Package size reduction (graph)
 - Raised target, slowdown from `let`/`const`, converted some blocks to `var`.
-- Dogfooding
+- Dogfooding!
   - Found auto-import bugs
   - Improvements to import organization and better ecosystem handling
   - All because we finally can experience modules.
