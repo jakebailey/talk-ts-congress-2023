@@ -15,7 +15,7 @@
     "devDependencies": {
         "@types/node": "^20.4.2",
         "dprint": "^0.39.1",
-        "playwright-chromium": "^1.36.0",
+        "playwright-chromium": "^1.36.1",
         "typescript": "^5.1.6"
     }
 }
