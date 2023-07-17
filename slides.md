@@ -962,6 +962,9 @@ export const buildSrc = task({
 
 <!--
 Old build had been gulp since 2016, `jake` before that.
+
+Feature complete at ~500 lines of code. Maybe if I had worked on this
+months later, I would have tried `wireit`.
  -->
 
 ---
