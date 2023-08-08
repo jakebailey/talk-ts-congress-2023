@@ -6,6 +6,8 @@ favicon: /favicon.ico
 download: true
 exportFilename: slides
 lineNumbers: true
+fonts:
+  mono: "Source Code Pro Bold"
 ---
 
 # Migrating TypeScript to Modules
@@ -58,6 +60,7 @@ lineNumbers: true
 - Modules are a _syntax_ (`import`, `export`)
 - Modules are an _output format_ (CommonJS, ESM, SystemJS, AMD, UMD, IIFE, ...)
 - Modules are _files_... except when they're not!
+- ... and other definitions
 
 <br>
 
@@ -182,7 +185,7 @@ var ts;
 
 # Namespaces have some upsides
 
-<v-clicks depth="2">
+<v-clicks depth="1">
 
 - With namespaces, we don't have to write imports, ever! 😅
   - Everything _feels_ local.
@@ -249,13 +252,13 @@ export function createProgram(): Program {
 
 # Great! Let's do it.
 
-How can we...
+The question is.. how can we:
 
 - Switch to imports (duh).
-- Preserve the same behavior.
+- Maintain the same behavior.
 - Preserve our public API.
 
-All while the team is still working!
+All while the team is still committing code!
 
 _Oh, and also..._
 
@@ -277,20 +280,20 @@ _Oh, and also..._
 Certainly not by hand!
 
 - We'll _programmatically_ transform the codebase.
-- Perform the operations we _would_ have done by hand.
-- Use `ts-morph` for TS to TS transformation.
 - Break things into steps so we can see what's going on.
   - More importantly, so `git` can see what's going on!
 - Code: https://github.com/jakebailey/typeformer
-- Follow along at: https://github.com/jakebailey/typescript/pull/1
+- Follow along at: https://github.com/jakebailey/TypeScript/pull/1
 
 ---
 
 # Step 0: Get everything loadable
 
 - We're using `ts-morph` to do the transformation.
+  - Wraps TS to provide better transformation fidelity, at the cost of
+    performance.
 - `ts-morph` only supports a single "project" at at time.
-- Loading `src/**/*.ts` gives us compiler errors due to our browser compat code.
+- Loading `src/**/*.ts` gives us compiler errors, but only in one place!
 - We can just remove the offending code and revert the change afterwards.
 
 ```diff
@@ -332,6 +335,12 @@ export function createSourceFile(sourceText: string): SourceFile {/* ... */}
 ```
 
 <!-- dprint-ignore-end -->
+
+<!--
+This is a silly one, but modules have their code one indent level above namespaces.
+If we unindent the code now, then later steps will be easier to review and git will better
+track the code through `git blame`.
+-->
 
 ---
 
@@ -791,12 +800,12 @@ export = ts; // <-- This is what API consumers see!
 
 Now that we have an idea of where we're going, the transform should:
 
-- Determine which namespace the file defined.
-- Determine which namespaces need to be imported.
-- Create the `_namespace` files, reexporting their contents.
-- Lift all code out of `namespace` blocks, then delete the `namespace`.
-- Insert imports at the top.
-- Drop all of the dead `tsconfig.json` configuration (`prepend`, `outFile`).
+1. Determine which namespace the file defined and which namespaces it
+   referenced.
+1. Create the `_namespace` files, reexporting their contents.
+1. Lift all code out of `namespace` blocks.
+1. Insert imports at the top.
+1. Drop all of the dead `tsconfig.json` configuration (`prepend`, `outFile`).
 
 Afterwards, we're left with a codebase which compiles without error! 🎉
 
@@ -826,24 +835,7 @@ export function createSourceFile(sourceText: string): SourceFile {
 }
 ```
 
----
-
-# Step 4: Convert to named imports, cont.
-
-- This is _almost_ our desired code, just indirecting through "namespace
-  barrels".
-- But, that's a good tradeoff for now!
-  - With imports, we can use tools like `madge` or `dpdm` to find cycles.
-
-<!-- TODO: spacing -->
-
-```ts
-import { createScanner, SourceFile } from "./_namespaces/ts";
-
-export function createSourceFile(sourceText: string): SourceFile {
-    const scanner = createScanner(sourceText);
-}
-```
+This is _almost_ our desired code, just with through "namespace barrels".
 
 ---
 
@@ -853,25 +845,17 @@ export function createSourceFile(sourceText: string): SourceFile {
 
 At this point, all of the hard work is done!
 
-As `main` updates, we can rebase and rerun each of these automated steps. This
-lets the team continue working until the moment we're ready to go.
+As `main` updates, we can rebase and rerun each of these automated steps.
 
 But, there are still lots of fiddly bits left.
 
 <img src="/img/draw_owl.jpg">
-<!-- <LightOrDark>
-<template #dark><img class="inverted" src="/draw_owl.jpg"></template>
-<template #light><img src="/draw_owl.jpg"></template>
-</LightOrDark> -->
 
 <style>
 img {
     height: 50%;
     margin-left: auto;
     margin-right: auto;
-}
-.inverted {
-    filter: invert(1);
 }
 </style>
 
@@ -885,8 +869,6 @@ After the automation, there were _29_ manual changes (stored in patches for
 `git am`).
 
 Let's go over some highlights.
-
-<!-- TODO: maybe just link to the blog post -->
 
 ---
 
@@ -921,6 +903,7 @@ if (typeof module !== "undefined" && module.exports) {
   - But now we're using esbuild, which doesn't produce `d.ts` files.
 - We ended up rolling our own (small, very limited) `d.ts` bundler.
 - Definitely not for external use; it's very specific to our API.
+  - Syntax only + detection of problems
 
 ```ts
 // Something like...
@@ -942,11 +925,9 @@ export = ts;
 
 ## 
 
-- Our old build was `gulp`.
-  - Calls out to `tsc`, streams to modify files, the works.
-  - Complicated web of `series` and `parallel` tasks.
-- New build has all new steps, but removes many others.
-- Build completely replaced, reimplemented in a new task runner!
+- Our old build was handled `gulp`; had gotten somewhat convoluted.
+- With modules, the build steps are quite different!
+- Build completely replaced, reimplemented in an entirely new task runner.
   - Plain JS functions with an explicit dependency graph, as parallel as
     possible.
 - It's called `hereby`, don't use it, thanks.
@@ -971,55 +952,29 @@ months later, I would have tried `wireit`.
 
 # How did it go?
 
-Great!
+Great! 👍
 
-TODO
-
-- Core development loop performance boost
-- Performance boost from hoisting (TODO: numbers)
-- Package size reduction (TODO: graph)
-- Raised target, slowdown from `let`/`const`, converted some blocks to `var`.
-  (TODO: numbers?)
+- Core development loop performance boost.
+  - New build is faster in general, `esbuild` means we can skip typechecking.
+- Performance speedup from `esbuild`'s scope hoisting (10-20% or so).
+- Package size reduction (63.8 MB -> 37.4 MB).
 - Dogfooding!
   - Found auto-import bugs
   - Improvements to import organization and better ecosystem handling
-  - All because we finally can experience modules.
 
----
-
-# Core development boost
-
-- Since we're using esbuild to do our emit, we can skip typechecking if we want.
-- Our build has a new `--no-typecheck` flag.
-- Starting to debug a test is instant.
-
----
-
-# Performance boost
-
-TODO
-
----
-
-# let/const
-
-TODO
-
----
-
-# Dogfooding
-
-TODO
+See the blog post for more details.
+[jakebailey.dev/go/modules-blog](https://jakebailey.dev/go/modules-blog)
 
 ---
 
 # What's next?
 
-TODO
-
-- Removing cycles from the codebase
-- Shipping ESM for executables (maybe even the API)
-- Minification? (probably not, because patchers)
+- Removal cycles from the codebase
+  - Leads us to safe direct imports without `_namespaces`.
+- Shipping ESM for executables.
+  - Reduces package size by sharing code.
+  - Enables us to package an ESM API for free?
+- Minification? Other optimizers?
 
 ---
 
