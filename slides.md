@@ -252,9 +252,11 @@ export function createProgram(): Program {
 
 # Great! Let's do it.
 
-The question is.. how can we:
+## 
 
-- Switch to imports (duh).
+The question is... how can we:
+
+- Switch to imports/exports (duh).
 - Maintain the same behavior.
 - Preserve our public API.
 
@@ -767,28 +769,8 @@ export * from "../../services/_namespaces/ts";
 export * from "../../deprecatedCompat/_namespaces/ts";
 
 // @filename: src/typescript/typescript.ts
-import * as ts from "./_namespace/ts";
-export = ts; // <-- This is what API consumers see!
-```
+import * as ts from "./_namespaces/ts";
 
----
-
-# Also, this gives us our public API!
-
-## 
-
-Or, `tsserverlibrary.js`.
-
-```ts
-// @filename: src/tsserverlibrary/_namespaces/ts.ts
-export * from "../../compiler/_namespaces/ts";
-export * from "../../services/_namespaces/ts";
-export * from "../../server/_namespaces/ts";
-import * as server from "./ts.server";
-export { server };
-
-// @filename: src/tsserverlibrary/tsserverlibrary.ts
-import * as ts from "./_namespace/ts";
 export = ts; // <-- This is what API consumers see!
 ```
 
@@ -808,6 +790,8 @@ Now that we have an idea of where we're going, the transform should:
 1. Drop all of the dead `tsconfig.json` configuration (`prepend`, `outFile`).
 
 Afterwards, we're left with a codebase which compiles without error! 🎉
+
+(... after 700 lines of transform, anyway ...)
 
 ---
 
@@ -875,7 +859,6 @@ Let's go over some highlights.
 # Bundling with `esbuild`
 
 - Our old outputs were a handful of large-ish bundles produced by `outFile`.
-  - People depend on that.
 - Lots of bundlers to choose from; we went with `esbuild`.
 - Obviously, it's fast.
 - Supports scope hoisting, tree shaking, enum inlining, and is pretty easy to
@@ -903,7 +886,6 @@ if (typeof module !== "undefined" && module.exports) {
   - But now we're using esbuild, which doesn't produce `d.ts` files.
 - We ended up rolling our own (small, very limited) `d.ts` bundler.
 - Definitely not for external use; it's very specific to our API.
-  - Syntax only + detection of problems
 
 ```ts
 // Something like...
@@ -969,9 +951,9 @@ See the blog post for more details.
 
 # What's next?
 
-- Removal cycles from the codebase
+- Removal cycles from the codebase.
   - Leads us to safe direct imports without `_namespaces`.
-- Shipping ESM for executables.
+- Shipping our executables as split ESM bundles.
   - Reduces package size by sharing code.
   - Enables us to package an ESM API for free?
 - Minification? Other optimizers?
