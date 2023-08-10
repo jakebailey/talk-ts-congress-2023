@@ -780,6 +780,8 @@ export = ts; // <-- This is what API consumers see!
 
 ## 
 
+<!-- TODO: This is too long -->
+
 Now that we have an idea of where we're going, the transform should:
 
 1. Determine which namespace the file defined and which namespaces it
