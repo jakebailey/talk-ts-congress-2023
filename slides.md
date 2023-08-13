@@ -45,6 +45,23 @@ fonts:
 
 ---
 
+# What are we talking about?
+
+<LightOrDark>
+<template #dark><img src="/img/pr.png"></template>
+<template #light><img src="/img/pr_light.png"></template>
+</LightOrDark>
+
+<style>
+img {
+    height: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
+---
+
 # Outline
 
 - What even _are_ modules?
