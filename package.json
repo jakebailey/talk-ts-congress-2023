@@ -13,9 +13,9 @@
         "vue-chartjs": "^5.2.0"
     },
     "devDependencies": {
-        "@types/node": "^20.4.8",
+        "@types/node": "^20.5.0",
         "dprint": "^0.40.2",
-        "playwright-chromium": "^1.36.2",
+        "playwright-chromium": "^1.37.0",
         "typescript": "^5.1.6"
     }
 }
