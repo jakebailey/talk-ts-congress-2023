@@ -146,9 +146,9 @@ namespace ts {
 
 <v-clicks at="0">
 
-- Code is organized into "namespaces".
-- Declarations are exported using `export`.
-- Other namespaces can reference exported declarations _implicitly_.
+- Code is organized into "namespaces"
+- Declarations are exported using `export`
+- Other namespaces can reference exported declarations _implicitly_
 
 </v-clicks>
 
@@ -160,11 +160,11 @@ namespace ts {
 
 With namespaces, we don't have to write imports, ever! 😅
 
-- Everything _feels_ local.
-- When we write new code, we don't have to add any new imports.
-- Moving code from one file to another doesn't require modifying imports.
+- Everything _feels_ local
+- When we write new code, we don't have to add any new imports
+- Moving code from one file to another doesn't require modifying imports
 - We can "bundle" our code using only `tsc`'s module references and `prepend`
-  features.
+  features
 
 But...
 
@@ -172,9 +172,9 @@ But...
 
 # Nobody writes code like this anymore!
 
-- We completely miss out "dogfooding" our own module experience.
+- We completely miss out "dogfooding" our own module experience
   - Modern module resolution, auto-imports, import sorting, organization...
-- We can't use any tooling that needs imports, or that skips `tsc`.
+- We can't use any tooling that needs imports, or that skips `tsc`
 
 We want to be able to write:
 
@@ -200,7 +200,7 @@ The question is... how can we:
 
 - Actually make the switch ...
 - ... while maintaining the same behavior ...
-- ... and preserving a compatible API.
+- ... and preserving a compatible API?
 
 _Oh, and also..._
 
@@ -235,9 +235,9 @@ also make it as easy as possible to apply to main even when it changes.
 
 Certainly not by hand! We'll **_programmatically_** migrate the codebase.
 
-- Automate as much as possible through **_code transformation_**.
-- Make the inevitable hand-modifications **_as easy as possible to rebase_**.
-- Perform the migration in steps, to make debugging and review easier.
+- Automate as much as possible through **_code transformation_**
+- Make the inevitable hand-modifications **_as easy as possible to rebase_**
+- Perform the migration in steps, to make debugging and review easier
   - Not to mention so we don't lose our `git` history!
 
 <img src="/img/clippy.png">
@@ -255,7 +255,7 @@ img {
 
 # What does the migration tool look like?
 
-- Code transformation is performed with `ts-morph`.
+- Code transformation is performed with `ts-morph`
   - An extremely useful TypeScript API wrapper by David Sherret ❤️
     ([ts-morph.com](https://ts-morph.com))
 - Manual changes are managed by `git` with `.patch` files!
@@ -263,7 +263,7 @@ img {
   - `git format-patch` dumps to disk
   - `git am` applies the patches
   - If a patch fails to apply, `git` pauses for us!
-- The tool automates _everything_.
+- The tool automates _everything_
 
 Try it out! (Or watch a recording at
 [asciinema.org/a/602875](https://asciinema.org/a/602875))
@@ -283,8 +283,8 @@ This genius patching idea came from a former team member, Eli.
 # Step 1: Unindent
 
 - We're moving all of our code up one block, and so there's one fewer indent!
-- Do this early so later changes don't contain whitespace modification.
-  - Helps `git` track the code, and us review later changes.
+- Do this early so later changes don't contain whitespace modification
+  - Helps `git` track the code, and us review later changes
 
 From:
 
@@ -318,8 +318,8 @@ track the code through `git blame`.
 
 ## 
 
-- Namespace accesses are implicit, but imports will be explicit.
-- Making everything explicit makes later transformation easier.
+- Namespace accesses are implicit, but imports will be explicit
+- Making everything explicit makes later transformation easier
 
 From:
 
@@ -384,8 +384,8 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 
 Thanks to the previous step, all this step _appears_ to do is:
 
-- Delete `namespace ts {}`.
-- Add an import.
+- Delete `namespace ts {}`
+- Add an import
 
 ```diff
 -namespace ts {
@@ -553,23 +553,23 @@ img {
 ## 
 
 - After the automated transform steps, there are _29_ manual changes!
-- This is obviously scary; any changes to main could break these.
+- This is obviously scary; any changes to main could break these
 - But, we are using `git` to manage these!
 - If we run the migration, `git` will pause, just like a rebase. Just:
   1. Fix the problem
   1. `git am --continue`
-  1. Ask the migration tool to dump the patches.
+  1. Ask the migration tool to dump the patches
 
 ---
 
 # Bundling with `esbuild`
 
-- Our old outputs were a handful of large-ish bundles produced by `outFile`.
-- Lots of bundlers to choose from; we went with `esbuild`.
+- Our old outputs were a handful of large-ish bundles produced by `outFile`
+- Lots of bundlers to choose from; we went with `esbuild`
 - Obviously, it's fast. (200 ms to build `tsc.js`)
 - Supports scope hoisting, tree shaking, enum inlining, and is pretty easy to
-  work with.
-- We still maintain a mode in our build which uses exclusively `tsc`.
+  work with
+- We still maintain a mode in our build which uses exclusively `tsc`
 
 ---
 
@@ -605,10 +605,10 @@ if (typeof module !== "undefined" && module.exports) module.exports = ts;
 # `d.ts` bundling
 
 - Along with "bundled" `.js` files, `tsc`'s `outFile` also produced `.d.ts`
-  files.
-  - But now we're using esbuild, which doesn't produce `d.ts` files.
-- We ended up rolling our own (small, very limited) `d.ts` bundler.
-- Definitely not for external use; it's very specific to our API.
+  files
+  - But now we're using esbuild, which doesn't produce `d.ts` files
+- We ended up rolling our own (small, very limited) `d.ts` bundler
+- Definitely not for external use; it's very specific to our API
 
 ```ts
 // Something like...
@@ -630,12 +630,12 @@ export = ts;
 
 ## 
 
-- Our old build was handled `gulp`; had gotten somewhat convoluted.
+- Our old build was handled `gulp`; had gotten somewhat convoluted
 - With modules, the build steps are quite different!
-- Build completely replaced, reimplemented in an entirely new task runner.
+- Build completely replaced, reimplemented in an entirely new task runner
   - Plain JS functions with an explicit dependency graph, as parallel as
     possible.
-- It's called `hereby`, don't use it, thanks.
+- It's called `hereby`, don't use it, thanks
 
 ```ts
 export const buildSrc = task({
@@ -661,10 +661,10 @@ months later, I would have tried `wireit`.
 
 Great! 👍
 
-- Core development loop performance boost.
-  - New build is faster in general, `esbuild` means we can skip typechecking.
-- Performance speedup from `esbuild`'s scope hoisting (10-20% or so).
-- Package size reduction (63.8 MB -> 37.4 MB).
+- Core development loop performance boost
+  - New build is faster in general, `esbuild` means we can skip typechecking
+- Performance speedup from `esbuild`'s scope hoisting (10-20% or so)
+- Package size reduction (63.8 MB -> 37.4 MB)
 - Dogfooding!
   - Discovered a few auto-import bugs
   - Started thinking about better import organization and ecosystem integration
