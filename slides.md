@@ -173,7 +173,7 @@ But...
 # Nobody writes code like this anymore!
 
 - We completely miss out "dogfooding" our own module experience.
-  - e.g. modern module resolution, auto-imports, import sorting/organization
+  - Modern module resolution, auto-imports, import sorting, organization...
 - We can't use any tooling that needs imports, or that skips `tsc`.
 
 We want to be able to write:
@@ -240,6 +240,17 @@ Certainly not by hand! We'll **_programmatically_** migrate the codebase.
 - Perform the migration in steps, to make debugging and review easier.
   - Not to mention so we don't lose our `git` history!
 
+<img src="/img/clippy.png">
+
+<style>
+img {
+    height: 50%;
+    margin-left: auto;
+    box-shadow: 0px 0px 4px #FFFFFF;
+    border-radius: 4px;
+}
+</style>
+
 ---
 
 # What does the migration tool look like?
@@ -248,16 +259,16 @@ Certainly not by hand! We'll **_programmatically_** migrate the codebase.
   - An extremely useful TypeScript API wrapper by David Sherret ❤️
     ([ts-morph.com](https://ts-morph.com))
 - Manual changes are managed by `git` with `.patch` files!
-  - We have patches both before and after the code transformation steps.
-  - `git format-patch` dumps manual changes to disk; stored with the migration
-    code.
-  - `git am` applies the patches before / after when rerunning the migration.
+  - Pre / post transformation patches
+  - `git format-patch` dumps to disk
+  - `git am` applies the patches
   - If a patch fails to apply, `git` pauses for us!
 - The tool automates _everything_.
 
-Try it out! (I promise this isn't malicious; but read it yourself.)
+Try it out! (Or watch a recording at
+[asciinema.org/a/602875](https://asciinema.org/a/602875))
 
-`sh -c "$(curl -fsSL https://jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
+`sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
 
 <!--
 ts-morph is really great for doing TS-to-TS transformation.
@@ -555,8 +566,7 @@ img {
 
 - Our old outputs were a handful of large-ish bundles produced by `outFile`.
 - Lots of bundlers to choose from; we went with `esbuild`.
-- Obviously, it's fast.
-  - 200ms to build `tsc.js`
+- Obviously, it's fast. (200 ms to build `tsc.js`)
 - Supports scope hoisting, tree shaking, enum inlining, and is pretty easy to
   work with.
 - We still maintain a mode in our build which uses exclusively `tsc`.
@@ -647,6 +657,8 @@ months later, I would have tried `wireit`.
 
 # How did it go?
 
+## 
+
 Great! 👍
 
 - Core development loop performance boost.
@@ -654,28 +666,13 @@ Great! 👍
 - Performance speedup from `esbuild`'s scope hoisting (10-20% or so).
 - Package size reduction (63.8 MB -> 37.4 MB).
 - Dogfooding!
-  - Found auto-import bugs
-  - Improvements to import organization and better ecosystem handling
-
-See the blog post for more details.
-[jakebailey.dev/go/modules-blog](https://jakebailey.dev/go/modules-blog)
+  - Discovered a few auto-import bugs
+  - Started thinking about better import organization and ecosystem integration
 
 ---
 
-# What's next?
+# Thanks!
 
-- Removal cycles from the codebase.
-  - Leads us to safe direct imports without `_namespaces`.
-- Shipping our executables as split ESM bundles.
-  - Reduces package size by sharing code.
-  - Enables us to package an ESM API for free?
-- Minification? Other optimizers?
-
----
-
-# Thanks for watching!
-
-<br>
 <br>
 <br>
 
@@ -686,5 +683,6 @@ See the blog post for more details.
   [github.com/jakebailey/typeformer](https://github.com/jakebailey/typeformer)
 - Modules blog:
   [jakebailey.dev/go/modules-blog](https://jakebailey.dev/go/modules-blog)
-- Try:
-  `sh -c "$(curl -fsSL https://jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
+- Watch the migration: [asciinema.org/a/602875](https://asciinema.org/a/602875)
+- Or, try it:
+  `sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`

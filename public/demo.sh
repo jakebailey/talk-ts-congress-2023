@@ -49,7 +49,7 @@ cd TypeScript
 node ../typeformer/dist/cli.js run
 
 echo
-echo Yay, we're modules! Let's try building tsc...
+echo "Yay, we're modules! Let's try building tsc..."
 
 echo
 echo "$ npx hereby tsc"
