@@ -553,7 +553,7 @@ img {
 ## 
 
 - After the automated transform steps, there are _29_ manual changes!
-- This is obviously scary; any changes to main could break these
+- This is obviously scary; any changes to main could conflict
 - But, we are using `git` to manage these!
 - If we run the migration, `git` will pause, just like a rebase. Just:
   1. Fix the problem
