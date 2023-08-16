@@ -5,6 +5,7 @@
     "cSpell.words": [
         "asciinema",
         "chartjs",
+        "clippy",
         "Compat",
         "dogfooding",
         "dpdm",
@@ -17,6 +18,7 @@
         "slidev",
         "tsbuild",
         "tsserverlibrary",
+        "tsup",
         "typecheck",
         "typechecks",
         "typeformer",

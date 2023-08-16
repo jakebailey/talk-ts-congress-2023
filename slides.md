@@ -81,8 +81,8 @@ get to talk about, and that's what I'm going to go over today.
 
 - What even is a "migration to modules"?
 - Why was it so challenging?
-- How did we do it, even though it was challenging?
-- How did the migration _actually_ work?
+- How did we make it less painful?
+- What did the migration _actually_ do?
 
 ---
 
@@ -113,14 +113,14 @@ sayHello("TypeScript Congress");
 <Arrow x1="600" y1="150" x2="450" y2="150" color="orangered" />
 </v-click>
 
+<!-- dprint-ignore-start -->
+
 <!--
 When I talk about modules in this talk, I'm primarily talking about
 the syntax and its associated layout on disk.
 
 This begs the question; if we're migrating to this, what were we using?
 -->
-
-<!-- dprint-ignore-start -->
 
 ---
 clicks: 3 # Hack; default is miscounted as 6
@@ -270,6 +270,8 @@ Try it out! `sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
 (Or watch a recording at
 [asciinema.org/a/602875](https://asciinema.org/a/602875))
 
+<!-- dprint-ignore-start -->
+
 <!--
 ts-morph is really great for doing TS-to-TS transformation.
 When I started, we were using TS's own transformation system for this,
@@ -277,6 +279,14 @@ but our stack is much more focused on JS emit, not perfect source preservation.
 
 This genius patching idea came from a former team member, Eli.
 -->
+
+---
+layout: center
+---
+
+<!-- dprint-ignore-end -->
+
+# The transformation steps
 
 ---
 
@@ -548,7 +558,7 @@ img {
 
 ---
 
-# Manual changes
+# The manual changes
 
 ## 
 
@@ -560,15 +570,31 @@ img {
   1. `git am --continue`
   1. Ask the migration tool to dump the patches
 
+<!-- dprint-ignore-start -->
+
+---
+layout: center
+---
+
+<!-- dprint-ignore-end -->
+
+# Manual change highlights
+
+<!--
+Remember, there are 29 of these, I can't go through them all here.
+Check out the PR or migration tool to see all of them.
+-->
+
 ---
 
 # Bundling with `esbuild`
 
 - Our old outputs were a handful of large-ish bundles produced by `outFile`
-- Lots of bundlers to choose from; we went with `esbuild`
-- Obviously, it's fast. (200 ms to build `tsc.js`)
-- Supports scope hoisting, tree shaking, enum inlining, and is pretty easy to
-  work with
+- Lots of bundlers to choose from; I went with `esbuild`
+  ([esbuild.github.io](https://esbuild.github.io/))
+- Obviously, it's fast. ~200 ms to build `tsc.js`.
+- Does scope hoisting, tree shaking, enum inlining, and is pretty easy to work
+  with
 - We still maintain a mode in our build which uses exclusively `tsc`
 
 ---
@@ -607,7 +633,7 @@ if (typeof module !== "undefined" && module.exports) module.exports = ts;
 - Along with "bundled" `.js` files, `tsc`'s `outFile` also produced `.d.ts`
   files
   - But now we're using esbuild, which doesn't produce `d.ts` files
-- We ended up rolling our own (small, very limited) `d.ts` bundler
+- I ended up rolling my own `d.ts` bundler (~400 LoC)
 - Definitely not for external use; it's very specific to our API
 
 ```ts
@@ -624,18 +650,25 @@ namespace ts {
 export = ts;
 ```
 
+<!--
+Many other alternatives considered, api-extractor, rollup-plugin-dts,
+tsup, dts-bundler-generator
+-->
+
 ---
 
 # Complete build overhaul
 
 ## 
 
-- Our old build was handled `gulp`; had gotten somewhat convoluted
+- Our old build was handled `gulp`; had gotten somewhat convoluted and hard to
+  change
 - With modules, the build steps are quite different!
-- Build completely replaced, reimplemented in an entirely new task runner
+- Build completely replaced, reimplemented using an all new task runner (~500
+  LoC)
   - Plain JS functions with an explicit dependency graph, as parallel as
-    possible.
-- It's called `hereby`, don't use it, thanks
+    possible
+- It's called `hereby`, don't use it, thanks 😅
 
 ```ts
 export const buildSrc = task({
