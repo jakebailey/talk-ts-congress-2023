@@ -260,15 +260,15 @@ img {
     ([ts-morph.com](https://ts-morph.com))
 - Manual changes are managed by `git` with `.patch` files!
   - Pre / post transformation patches
-  - `git format-patch` dumps to disk
-  - `git am` applies the patches
+  - `git format-patch` dumps commits to disk in development
+  - `git am` applies the patches during the migration
   - If a patch fails to apply, `git` pauses for us!
 - The tool automates _everything_
 
-Try it out! (Or watch a recording at
-[asciinema.org/a/602875](https://asciinema.org/a/602875))
+Try it out! `sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
 
-`sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
+(Or watch a recording at
+[asciinema.org/a/602875](https://asciinema.org/a/602875))
 
 <!--
 ts-morph is really great for doing TS-to-TS transformation.
@@ -585,7 +585,7 @@ var ts;
 (function(ts) {/* ... */})(ts || (ts = {}));
 // ...
 (function(ts) {
-    // Just in some random file included in the build 🙃
+    // Just in some random file included in the compiler 🙃
     if (typeof module !== "undefined" && module.exports) module.exports = ts;
 })(ts || (ts = {}));
 ```
@@ -665,6 +665,7 @@ Great! 👍
   - New build is faster in general, `esbuild` means we can skip typechecking
 - Performance speedup from `esbuild`'s scope hoisting (10-20% or so)
 - Package size reduction (63.8 MB -> 37.4 MB)
+  - Tree shaking in bundles, 2 space indent, general cleanup
 - Dogfooding!
   - Discovered a few auto-import bugs
   - Started thinking about better import organization and ecosystem integration
