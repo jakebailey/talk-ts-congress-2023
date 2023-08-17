@@ -6,6 +6,7 @@
         "dev": "slidev",
         "export": "slidev export --with-clicks"
     },
+    "packageManager": "pnpm@8.6.12",
     "dependencies": {
         "@slidev/cli": "^0.42.7",
         "@slidev/theme-default": "^0.21.2",
