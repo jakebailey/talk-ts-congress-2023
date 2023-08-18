@@ -811,8 +811,14 @@ Great! 👍
 
 There's no way I can fit all of this in, but:
 
-- ESM for our executables?
--
+- Shipping ESM?
+  - Still some blockers, but looking hopeful!
+  - Probably works for executables (`tsc`, `tsserver`, ...)?
+  - Maybe an ESM API "for free"?
+- Getting rid of `_namespaces`, somehow?
+- Untangling things so we can be tree shaken?
+- Minification? Other optimizers?
+  - Downstream patchers make this challenging 😢
 
 ---
 
