@@ -104,6 +104,7 @@ get to talk about, and that's what I'm going to go over today.
 - Why was it so challenging?
 - How did we make it less painful?
 - How did the migration _actually_ work under the hood?
+- How did it go and what's next?
 
 ---
 
@@ -144,18 +145,19 @@ This begs the question; if we're migrating to this, what were we using?
 -->
 
 ---
-clicks: 2 # Hack; default is miscounted as 6
+clicks: 3 # Hack; default is miscounted as 6
 ---
 
 <!-- dprint-ignore-end -->
 
-# TypeScript pre-5.0: Namespaces!
+# Scripts and global namespaces
 
 ## 
 
-Each file declared a namespace, usually `ts`.
+The opposite of modules: _scripts and globals_. Each file declared a namespace,
+usually `ts`.
 
-```ts {|3|9}
+```ts {|3|9|}
 // @filename: src/compiler/parser.ts
 namespace ts {
     export function createSourceFile(sourceText: string): SourceFile {/* ... */}
@@ -173,6 +175,7 @@ namespace ts {
 
 - Declarations are exported using `export`
 - Other namespaces can reference exported declarations _implicitly_
+- And, all of this is declared in the global scope.
 
 </v-clicks>
 
@@ -215,8 +218,6 @@ Surprise! Not so implicit now, are you?
 
 # "Bundling" with `prepend`
 
-aka _tsc was a bundler this whole time???_
-
 ```json
 // @filename: src/tsc/tsconfig.json
 {
@@ -242,6 +243,33 @@ var ts;
 <!--
 Did you know that TypeScript has been a bundler this whole time?
 -->
+
+---
+
+# What if someone wants to import our code?
+
+## 
+
+All of this output is theoretically global, but we can cheat the system.
+
+In some random file, declare this:
+
+```ts
+namespace ts {
+    if (typeof module !== "undefined" && module.exports) module.exports = ts;
+}
+```
+
+Emits as:
+
+```ts
+var ts;
+(function(ts) {/* ... */})(ts || (ts = {}));
+// ...
+(function(ts) {
+    if (typeof module !== "undefined" && module.exports) module.exports = ts;
+})(ts || (ts = {}));
+```
 
 ---
 
@@ -492,7 +520,7 @@ Thanks to the previous steps, all this step _appears_ to do is:
 - Delete `namespace ts {}`
 - Add an import
 
-In diff form:
+Everything else stays the same!
 
 ```diff
 -namespace ts {
@@ -503,8 +531,6 @@ In diff form:
  }
 -}
 ```
-
-All other lines are unchanged!
 
 But, what the heck is this `_namespaces` import?
 
@@ -730,7 +756,7 @@ var ts;
 (function(ts) {/* ... */})(ts || (ts = {}));
 // ...
 (function(ts) {
-    // Just in some random file included in the compiler 😬
+    // Remember this?
     if (typeof module !== "undefined" && module.exports) module.exports = ts;
 })(ts || (ts = {}));
 ```
@@ -822,6 +848,7 @@ Great! 👍
   - Discovered and fixed a few auto-import bugs
   - Spawned an effort to better handle import organization and ecosystem
     integration
+- `prepend` is deprecated; to be removed in TS 5.5
 
 ---
 
