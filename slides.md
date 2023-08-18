@@ -827,12 +827,23 @@ There's no way I can fit all of this in, but:
 <br>
 <br>
 
-- Find me at: [jakebailey.dev](https://jakebailey.dev)
-- The migration PR:
-  [jakebailey.dev/go/module-migration-pr](https://jakebailey.dev/go/module-migration-pr)
-- The migration tool:
-  [jakebailey.dev/go/module-migration-tool](https://jakebailey.dev/go/module-migration-tool)
-- Module migration blog:
-  [jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog)
-- Watch the migration in real time:
-  [jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
+Find me at: [jakebailey.dev](https://jakebailey.dev)
+
+The migration PR:
+[jakebailey.dev/go/module-migration-pr](https://jakebailey.dev/go/module-migration-pr)
+
+The migration tool:
+[jakebailey.dev/go/module-migration-tool](https://jakebailey.dev/go/module-migration-tool)
+
+Module migration blog:
+[jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog)
+
+Watch the migration in real time:
+[jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
+
+<style>
+a {
+  position: absolute;
+  left: 50%;
+}
+</style>
