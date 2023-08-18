@@ -48,20 +48,40 @@ fonts:
 # What are we talking about?
 
 <LightOrDark>
-<template #dark><img src="/img/pr.png"></template>
-<template #light><img src="/img/pr_light.png"></template>
+<template #dark><img class="main" src="/img/pr.png"></template>
+<template #light><img class="main" src="/img/pr_light.png"></template>
 </LightOrDark>
 
 More details at
-[jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog);
-but this talk covers bits not in that post!
+[jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog)
+
+<v-click>
+
+<div>
+<LightOrDark>
+<template #dark><img class="zoom" src="/img/pr.png"></template>
+<template #light><img class="zoom" src="/img/pr_light.png"></template>
+</LightOrDark>
+</div>
+
+</v-click>
 
 <style>
-img {
-    height: 75%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 4%;
+img.main {
+  height: 75%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 4%;
+}
+img.zoom {
+  position: absolute;
+  left: 57%;
+  top: 18%;
+  height: 45px;
+  width: 320px;
+  object-fit: none;
+  object-position: 97% 19%;
+  border: 2px solid orangered;
 }
 </style>
 
@@ -816,6 +836,7 @@ There's no way I can fit all of this in, but:
   - Probably works for executables (`tsc`, `tsserver`, ...)?
   - Maybe an ESM API "for free"?
 - Getting rid of `_namespaces`, somehow?
+  - These also fix problems with cycles in our codebase, of which there are many
 - Untangling things so we can be tree shaken?
 - Minification? Other optimizers?
   - Downstream patchers make this challenging 😢
