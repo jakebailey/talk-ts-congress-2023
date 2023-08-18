@@ -53,8 +53,8 @@ fonts:
 </LightOrDark>
 
 More details at
-[jakebailey.dev/go/modules-blog](https://jakebailey.dev/go/modules-blog); but
-this talk covers bits not in that post!
+[jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog);
+but this talk covers bits not in that post!
 
 <style>
 img {
@@ -68,9 +68,10 @@ img {
 <!--
 First off, what are we even talking about?
 
-In November of last year, I sent this PR; a huge
-change which completely changed the structure of the TypeScript codebase.
-This was the culmination of many months of work. We talked about much of
+In November of last year, I sent this PR. This was the culmination of many months of work.
+A huge PR (some 280K lines) which completely changed the structure of our codebase.
+
+We talked about much of
 this change's effects on our blog, but there's a lot of stuff we didn't
 get to talk about, and that's what I'm going to go over today.
 -->
@@ -82,7 +83,7 @@ get to talk about, and that's what I'm going to go over today.
 - What even is a "migration to modules"?
 - Why was it so challenging?
 - How did we make it less painful?
-- What did the migration _actually_ do?
+- How did the migration _actually_ work under the hood?
 
 ---
 
@@ -123,14 +124,18 @@ This begs the question; if we're migrating to this, what were we using?
 -->
 
 ---
-clicks: 3 # Hack; default is miscounted as 6
+clicks: 2 # Hack; default is miscounted as 6
 ---
 
 <!-- dprint-ignore-end -->
 
-# TypeScript <= 4.9
+# TypeScript pre-5.0: Namespaces!
 
-```ts {|2,4,7,11|3|9}
+## 
+
+Each file declared a namespace, usually `ts`.
+
+```ts {|3|9}
 // @filename: src/compiler/parser.ts
 namespace ts {
     export function createSourceFile(sourceText: string): SourceFile {/* ... */}
@@ -146,11 +151,77 @@ namespace ts {
 
 <v-clicks at="0">
 
-- Code is organized into "namespaces"
 - Declarations are exported using `export`
 - Other namespaces can reference exported declarations _implicitly_
 
 </v-clicks>
+
+<!--
+Fun fact; namespaces were originally called "internal modules".
+-->
+
+---
+
+# Emitting namespaces
+
+## 
+
+Namespaces downlevel into plain objects and functions.
+
+```ts
+var ts;
+// was: src/compiler/parser.ts
+(function(ts) {
+    function createSourceFile(sourceText) {/* ... */}
+    ts.createSourceFile = createSourceFile;
+})(ts || (ts = {}));
+
+// was: src/compiler/program.ts
+(function(ts) {
+    function createProgram() {
+        const sourceFile = ts.createSourceFile(text);
+    }
+    ts.createProgram = createProgram;
+})(ts || (ts = {}));
+```
+
+<v-click>
+<Arrow x1="289" y1="410" x2="289" y2="345" color="orangered" />
+
+Surprise! Not so implicit now, are you?
+</v-click>
+
+---
+
+# "Bundling" with `prepend`
+
+aka _tsc was a bundler this whole time???_
+
+```json
+// @filename: src/tsc/tsconfig.json
+{
+    "compilerOptions": { "outFile": "../../built/local/tsc.js" },
+    "references": [
+        { "path": "../compiler", "prepend": true },
+        { "path": "../executeCommandLine", "prepend": true }
+    ]
+}
+```
+
+Makes `tsc` emit:
+
+```ts
+var ts;
+// Cram all of src/compiler/**/*.ts and src/executeCommandLine/**/*.ts on top.
+(function(ts) {/*...*/})(ts || (ts = {}));
+// ...
+// was: src/tsc/tsc.ts
+(function(ts) { ts.executeCommandLine(...); })(ts || (ts = {}));
+```
+
+<!--
+Did you know that TypeScript has been a bundler this whole time?
+-->
 
 ---
 
@@ -163,8 +234,7 @@ With namespaces, we don't have to write imports, ever! 😅
 - Everything _feels_ local
 - When we write new code, we don't have to add any new imports
 - Moving code from one file to another doesn't require modifying imports
-- We can "bundle" our code using only `tsc`'s module references and `prepend`
-  features
+- `tsc` "bundles" our code thanks to `prepend`
 
 But...
 
@@ -172,9 +242,10 @@ But...
 
 # Nobody writes code like this anymore!
 
-- We completely miss out "dogfooding" our own module experience
-  - Modern module resolution, auto-imports, import sorting, organization...
+- We completely miss out on "dogfooding" our own module experience
+  - e.g. modern module resolution, auto-imports, import sorting, organization...
 - We can't use any tooling that needs imports, or that skips `tsc`
+- We have to maintain `prepend`... but nobody uses it _except us_ 🥴
 
 We want to be able to write:
 
@@ -237,8 +308,8 @@ Certainly not by hand! We'll **_programmatically_** migrate the codebase.
 
 - Automate as much as possible through **_code transformation_**
 - Make the inevitable hand-modifications **_as easy as possible to rebase_**
-- Perform the migration in steps, to make debugging and review easier
-  - Not to mention so we don't lose our `git` history!
+- Perform the migration **_in steps_**, to make debugging and review easier
+  - Not to mention, we don't want to lose our `git` history!
 
 <img src="/img/clippy.png">
 
@@ -256,19 +327,20 @@ img {
 # What does the migration tool look like?
 
 - Code transformation is performed with `ts-morph`
-  - An extremely useful TypeScript API wrapper by David Sherret ❤️
+  - An extremely helpful TypeScript API wrapper by David Sherret ❤️
     ([ts-morph.com](https://ts-morph.com))
 - Manual changes are managed by `git` with `.patch` files!
-  - Pre / post transformation patches
-  - `git format-patch` dumps commits to disk in development
+  - `git format-patch` dumps commits to disk
   - `git am` applies the patches during the migration
   - If a patch fails to apply, `git` pauses for us!
-- The tool automates _everything_
+- The tool automates **_everything_**
 
-Try it out! `sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
+<br>
 
-(Or watch a recording at
-[asciinema.org/a/602875](https://asciinema.org/a/602875))
+Want spoilers?
+
+Watch the migration happen in real time:
+[jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
 
 <!-- dprint-ignore-start -->
 
@@ -328,8 +400,7 @@ track the code through `git blame`.
 
 ## 
 
-- Namespace accesses are implicit, but imports will be explicit
-- Making everything explicit makes later transformation easier
+Namespace accesses are implicit, but imports will be explicit.
 
 From:
 
@@ -347,8 +418,12 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 }
 ```
 
-<Arrow x1="500" y1="300" x2="470" y2="350" color="orangered" />
-<Arrow x1="270" y1="440" x2="245" y2="390" color="orangered" />
+<Arrow x1="468" y1="260" x2="468" y2="310" color="orangered" />
+<Arrow x1="243" y1="387" x2="243" y2="347" color="orangered" />
+
+<br>
+
+This will make the next step clearer.
 
 <!--
 Note the `ts.` at the bottom.
@@ -358,7 +433,7 @@ The next step will show why this is helpful.
 
 ---
 
-# Step 3: Strip namespaces (the big one!)
+# Step 3: Replace namespaces with imports
 
 ## 
 
@@ -388,14 +463,16 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 
 ---
 
-# Step 3: Strip namespaces (cont.)
+# Step 3: Replace namespaces with imports
 
 ## 
 
-Thanks to the previous step, all this step _appears_ to do is:
+Thanks to the previous steps, all this step _appears_ to do is:
 
 - Delete `namespace ts {}`
 - Add an import
+
+In diff form:
 
 ```diff
 -namespace ts {
@@ -407,7 +484,13 @@ Thanks to the previous step, all this step _appears_ to do is:
 -}
 ```
 
+All other lines are unchanged!
+
 But, what the heck is this `_namespaces` import?
+
+<!--
+This is the big one!
+-->
 
 ---
 
@@ -455,14 +538,14 @@ namespace ts.performance {
 This too can be emulated using reexports:
 
 ```ts
-// @filename: src/compiler/_namespaces/ts.ts
-export * as performance from "./ts.performance";
+// @filename: src/compiler/performance.ts
+export function mark(label: string) {/* ... */}
 
 // @filename: src/compiler/_namespaces/ts.performance.ts;
 export * from "../performance";
 
-// @filename: src/compiler/performance.ts
-export function mark(label: string) {/* ... */}
+// @filename: src/compiler/_namespaces/ts.ts
+export * as performance from "./ts.performance";
 ```
 
 ---
@@ -506,6 +589,8 @@ import * as ts from "./_namespaces/ts";
 export = ts; // <-- This is what API consumers see!
 ```
 
+Convenient!
+
 ---
 
 # Step 4: Convert to named imports
@@ -542,15 +627,14 @@ This is _almost_ our desired code, but still through "namespace barrels".
 
 At this point, we're done with the bulk transformation.
 
-As `main` updates, we can rebase and rerun each of these automated steps.
-
-But, there are still lots of fiddly bits left.
+But, we're not done yet!
 
 <img src="/img/draw_owl.jpg">
 
 <style>
 img {
     height: 50%;
+    margin-top: 7%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -558,7 +642,7 @@ img {
 
 ---
 
-# The manual changes
+# Manual changes
 
 ## 
 
@@ -578,7 +662,7 @@ layout: center
 
 <!-- dprint-ignore-end -->
 
-# Manual change highlights
+# Some manual change highlights
 
 <!--
 Remember, there are 29 of these, I can't go through them all here.
@@ -590,12 +674,27 @@ Check out the PR or migration tool to see all of them.
 # Bundling with `esbuild`
 
 - Our old outputs were a handful of large-ish bundles produced by `outFile`
+  - Not looking to change the status quo quite yet
 - Lots of bundlers to choose from; I went with `esbuild`
-  ([esbuild.github.io](https://esbuild.github.io/))
-- Obviously, it's fast. ~200 ms to build `tsc.js`.
-- Does scope hoisting, tree shaking, enum inlining, and is pretty easy to work
-  with
-- We still maintain a mode in our build which uses exclusively `tsc`
+  ([esbuild.github.io](https://esbuild.github.io))
+- Obviously, it's fast; ~200 ms to build `tsc.js`
+- Features scope hoisting, tree shaking, enum inlining
+  - Great for performance and package size
+- We maintain a mode in our build which uses solely `tsc`, just to be sure
+
+<img
+  src="/img/esbuild.svg"
+  alt="esbuild logo"
+  height="87"
+  width="100" />
+
+<style>
+img {
+    height: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
 
 ---
 
@@ -611,7 +710,7 @@ var ts;
 (function(ts) {/* ... */})(ts || (ts = {}));
 // ...
 (function(ts) {
-    // Just in some random file included in the compiler 🙃
+    // Just in some random file included in the compiler 😬
     if (typeof module !== "undefined" && module.exports) module.exports = ts;
 })(ts || (ts = {}));
 ```
@@ -695,13 +794,25 @@ months later, I would have tried `wireit`.
 Great! 👍
 
 - Core development loop performance boost
-  - New build is faster in general, `esbuild` means we can skip typechecking
+  - New build is faster in general, and `esbuild` means we can skip typechecking
 - Performance speedup from `esbuild`'s scope hoisting (10-20% or so)
 - Package size reduction (63.8 MB -> 37.4 MB)
   - Tree shaking in bundles, 2 space indent, general cleanup
 - Dogfooding!
-  - Discovered a few auto-import bugs
-  - Started thinking about better import organization and ecosystem integration
+  - Discovered and fixed a few auto-import bugs
+  - Spawned an effort to better handle import organization and ecosystem
+    integration
+
+---
+
+# What's next?
+
+## 
+
+There's no way I can fit all of this in, but:
+
+- ESM for our executables?
+-
 
 ---
 
@@ -712,11 +823,10 @@ Great! 👍
 
 - Find me at: [jakebailey.dev](https://jakebailey.dev)
 - The migration PR:
-  [github.com/microsoft/TypeScript/pull/51387](https://github.com/microsoft/TypeScript/pull/51387)
+  [jakebailey.dev/go/module-migration-pr](https://jakebailey.dev/go/module-migration-pr)
 - The migration tool:
-  [github.com/jakebailey/typeformer](https://github.com/jakebailey/typeformer)
-- Modules blog:
-  [jakebailey.dev/go/modules-blog](https://jakebailey.dev/go/modules-blog)
-- Watch the migration: [asciinema.org/a/602875](https://asciinema.org/a/602875)
-- Or, try it:
-  `sh -c "$(curl -fsSL jakebailey.dev/talk-ts-congress-2023/demo.sh)"`
+  [jakebailey.dev/go/module-migration-tool](https://jakebailey.dev/go/module-migration-tool)
+- Module migration blog:
+  [jakebailey.dev/go/module-migration-blog](https://jakebailey.dev/go/module-migration-blog)
+- Watch the migration in real time:
+  [jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
