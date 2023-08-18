@@ -337,7 +337,7 @@ img {
 
 <br>
 
-Want spoilers?
+Like spoilers?
 
 Watch the migration happen in real time:
 [jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
