@@ -150,11 +150,11 @@ clicks: 3 # Hack; default is miscounted as 6
 
 <!-- dprint-ignore-end -->
 
-# Scripts and global namespaces
+# Kickin' It Old School
 
 ## 
 
-The opposite of modules: _scripts and globals_. Each file declared a namespace,
+The opposite of modules: _scripts_ 😱. Each file declared a _global_ namespace,
 usually `ts`.
 
 ```ts {|3|9|}
@@ -189,7 +189,7 @@ Fun fact; namespaces were originally called "internal modules".
 
 ## 
 
-Namespaces downlevel into plain objects and functions.
+Namespaces turn into plain objects and functions.
 
 ```ts
 var ts;
@@ -250,9 +250,9 @@ Did you know that TypeScript has been a bundler this whole time?
 
 ## 
 
-All of this output is theoretically global, but we can cheat the system.
+All of this output is declared global, but we can cheat.
 
-In some random file, declare this:
+In some random file included in `tsconfig.json`, declare this:
 
 ```ts
 namespace ts {
