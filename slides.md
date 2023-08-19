@@ -145,7 +145,7 @@ This begs the question; if we're migrating to this, what were we using?
 -->
 
 ---
-clicks: 3 # Hack; default is miscounted as 6
+clicks: 2 # Hack; default is miscounted
 ---
 
 <!-- dprint-ignore-end -->
@@ -175,7 +175,6 @@ namespace ts {
 
 - Declarations are exported using `export`
 - Other namespaces can reference exported declarations _implicitly_
-- And, all of this is declared in the global scope.
 
 </v-clicks>
 
