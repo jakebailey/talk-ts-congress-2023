@@ -325,7 +325,7 @@ _Oh, and also..._
 
 ---
 
-# TS is huge!
+# TypeScript is huge!
 
 <LightOrDark>
 <template #dark><TSReleaseByLines theme="dark" /></template>
@@ -335,9 +335,54 @@ _Oh, and also..._
 <!--
 This is a over a quarter of a million non-test lines which are
 going to have to change.
+-->
 
+---
+
+# TypeScript changes often!
+
+<LightOrDark>
+<template #dark><img class="main" src="/img/changes.png"></template>
+<template #light><img class="main" src="/img/changes_light.png"></template>
+</LightOrDark>
+
+<v-click>
+
+<div>
+<LightOrDark>
+<template #dark><img class="zoom" src="/img/changes.png"></template>
+<template #light><img class="zoom" src="/img/changes_light.png"></template>
+</LightOrDark>
+</div>
+
+</v-click>
+
+That's an average of ~5 commits a weekday.
+
+<style>
+img.main {
+  height: 75%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 4%;
+}
+img.zoom {
+  position: absolute;
+  left: 10%;
+  top: 45%;
+  height: 70px;
+  width: 338px;
+  object-fit: none;
+  object-position: 5% 30.5%;
+  border: 2px solid orangered;
+}
+</style>
+
+<!--
 Oh, and did I mention that there were over 1000 commits to main
 in the 9 months from when I started to when I merged the change?
+This isn't a trick of us merging branches; each commit is an
+individual merged PR.
 
 Average of 5 commits a weekday; even one commit would invalidate
 the whole thing.
