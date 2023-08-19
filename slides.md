@@ -150,7 +150,7 @@ clicks: 3 # Hack; default is miscounted as 6
 
 <!-- dprint-ignore-end -->
 
-# Kickin' It Old School
+# TypeScript pre-modules
 
 ## 
 
