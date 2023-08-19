@@ -746,6 +746,8 @@ img {
 
 <!-- dprint-ignore-start -->
 
+<!--  -->
+
 ---
 layout: center
 ---
@@ -877,7 +879,7 @@ months later, I would have tried `wireit`.
 
 ---
 
-# How did it go?
+# We did it! How has it turned out?
 
 ## 
 
@@ -900,14 +902,14 @@ Great! 👍
 
 ## 
 
-There's no way I can fit all of this in, but:
+There's way too much exciting stuff to talk about, but:
 
+- Getting rid of `_namespaces`, somehow?
+  - Dual purpose; they also help resolve import cycles
 - Shipping ESM?
   - Still some blockers, but looking hopeful!
   - Probably works for executables (`tsc`, `tsserver`, ...)?
   - Maybe an ESM API "for free"?
-- Getting rid of `_namespaces`, somehow?
-  - These also fix problems with cycles in our codebase, of which there are many
 - Untangling things so we can be tree shaken?
 - Minification? Other optimizers?
   - Downstream patchers make this challenging 😢
@@ -939,3 +941,8 @@ a {
   left: 50%;
 }
 </style>
+
+<!--
+So with that, thanks for watching! Feel free to check me out at jakebailey.dev,
+and check out some of the migration goodies.
+ -->
