@@ -102,7 +102,7 @@ get to talk about, and that's what I'm going to go over today.
 
 - What even is a "migration to modules"?
 - Why was it so challenging?
-- How did we make it less painful?
+- How did I make it less painful?
 - How did the migration _actually_ work under the hood?
 - How did it go and what's next?
 
@@ -135,8 +135,6 @@ sayHello("TypeScript Congress");
 <Arrow x1="600" y1="150" x2="450" y2="150" color="orangered" />
 </v-click>
 
-<!-- dprint-ignore-start -->
-
 <!--
 When I talk about modules in this talk, I'm primarily talking about
 the syntax and its associated layout on disk.
@@ -145,19 +143,15 @@ This begs the question; if we're migrating to this, what were we using?
 -->
 
 ---
-clicks: 2 # Hack; default is miscounted
----
-
-<!-- dprint-ignore-end -->
 
 # TypeScript pre-modules
 
 ## 
 
-The opposite of modules: _scripts_ 😱. Each file declared a _global_ namespace,
-usually `ts`.
+The opposite of modules is... scripts 😱 Everything is placed within _global_
+namespaces.
 
-```ts {|3|9|}
+```ts
 // @filename: src/compiler/parser.ts
 namespace ts {
     export function createSourceFile(sourceText: string): SourceFile {/* ... */}
@@ -167,19 +161,19 @@ namespace ts {
 namespace ts {
     export function createProgram(): Program {
         const sourceFile = createSourceFile(text);
-    }
 }
 ```
 
-<v-clicks at="0">
+<v-click>
+<Arrow x1="220" y1="320" x2="277" y2="300" color="orangered" />
+</v-click>
 
-- Declarations are exported using `export`
-- Other namespaces can reference exported declarations _implicitly_
-
-</v-clicks>
+Fun fact: namespaces were originally called "internal modules".
 
 <!--
-Fun fact; namespaces were originally called "internal modules".
+parser.ts defines the function createSourceFile, "exporting it"
+That makes it visible to other declarations of the ts namespace,
+so createProgram can use it, _implicitly_.
 -->
 
 ---
@@ -199,6 +193,7 @@ var ts;
 })(ts || (ts = {}));
 
 // was: src/compiler/program.ts
+var ts;
 (function(ts) {
     function createProgram() {
         const sourceFile = ts.createSourceFile(text);
@@ -208,9 +203,7 @@ var ts;
 ```
 
 <v-click>
-<Arrow x1="289" y1="410" x2="289" y2="345" color="orangered" />
-
-Surprise! Not so implicit now, are you?
+<Arrow x1="380" y1="300" x2="298" y2="345" color="orangered" />
 </v-click>
 
 ---
@@ -245,13 +238,11 @@ Did you know that TypeScript has been a bundler this whole time?
 
 ---
 
-# What if someone wants to import our code?
+# What if someone wants to import us?
 
 ## 
 
-All of this output is declared global, but we can cheat.
-
-In some random file included in `tsconfig.json`, declare this:
+Our outputs are constructed global scripts, but we're tricky.
 
 ```ts
 namespace ts {
@@ -259,7 +250,7 @@ namespace ts {
 }
 ```
 
-Emits as:
+Emits like:
 
 ```ts
 var ts;
@@ -276,12 +267,11 @@ var ts;
 
 ## 
 
-With namespaces, we don't have to write imports, ever! 😅
+With namespaces, we don't have to write imports, ever!
 
-- Everything _feels_ local
-- When we write new code, we don't have to add any new imports
-- Moving code from one file to another doesn't require modifying imports
-- `tsc` "bundles" our code thanks to `prepend`
+- When adding code, no new imports
+- When moving code, no changed imports
+- `tsc` "bundles" our code using `prepend`
 
 But...
 
@@ -289,12 +279,13 @@ But...
 
 # Nobody writes code like this anymore!
 
-- We completely miss out on "dogfooding" our own module experience
-  - e.g. modern module resolution, auto-imports, import sorting, organization...
-- We can't use any tooling that needs imports, or that skips `tsc`
+- We don't get to dogfood modules
+- We can't use external tools
 - We have to maintain `prepend`... but nobody uses it _except us_ 🥴
 
-We want to be able to write:
+<br>
+
+What we want:
 
 ```ts
 // @filename: src/compiler/parser.ts
@@ -320,7 +311,15 @@ The question is... how can we:
 - ... while maintaining the same behavior ...
 - ... and preserving a compatible API?
 
-_Oh, and also..._
+<!-- dprint-ignore-start -->
+
+---
+layout: center
+---
+
+<!-- dprint-ignore-end -->
+
+# The challenge
 
 ---
 
@@ -388,6 +387,15 @@ the whole thing.
 
 Any solution not only needs to handle the size of the code, but
 also make it as easy as possible to apply to main even when it changes.
+
+These are contributing factors in why it took so long to do this,
+along with loads of other little problems discovered along the way.
+CommonJS and the import/export syntax it works with has been around
+since the launch of TypeScript in 2012; ESM itself was added in 2015.
+First actual filed issue for "migrate" is 2019 with an actual effort
+that stalled.
+
+It took me like 8-9 months of dedicated work to get it to the finish line.
 -->
 
 ---
@@ -396,18 +404,18 @@ also make it as easy as possible to apply to main even when it changes.
 
 ## 
 
-Certainly not by hand! We'll **_programmatically_** migrate the codebase.
+Certainly not by hand! Automate _everything_.
 
-- Automate as much as possible through **_code transformation_**
-- Make the inevitable hand-modifications **_as easy as possible to rebase_**
-- Perform the migration **_in steps_**, to make debugging and review easier
-  - Not to mention, we don't want to lose our `git` history!
+- Code transformation where possible
+- `git` patches to store manual changes
+- Done stepwise, for debugging, review, `git blame` preservation
 
 <img src="/img/clippy.png">
 
 <style>
 img {
     height: 50%;
+    margin-top: 2%;
     margin-left: auto;
     box-shadow: 0px 0px 4px #FFFFFF;
     border-radius: 4px;
@@ -425,13 +433,12 @@ img {
   - `git format-patch` dumps commits to disk
   - `git am` applies the patches during the migration
   - If a patch fails to apply, `git` pauses for us!
-- The tool automates **_everything_**
 
 <br>
+<br>
+<br>
+<br>
 
-Like spoilers?
-
-Watch the migration happen in real time:
 [jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
 
 <!-- dprint-ignore-start -->
@@ -450,15 +457,17 @@ layout: center
 
 <!-- dprint-ignore-end -->
 
-# The transformation steps
+# Code transformation
 
 ---
 
 # Step 1: Unindent
 
-- We're moving all of our code up one block, and so there's one fewer indent!
-- Do this early so later changes don't contain whitespace modification
-  - Helps `git` track the code, and us review later changes
+## 
+
+Eventually, we _will_ pull the code out of the namespaces, one block higher.
+
+If we do it early, later diffs will be cleaner, and git will remember.
 
 From:
 
@@ -510,8 +519,10 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 }
 ```
 
+<v-click>
 <Arrow x1="468" y1="260" x2="468" y2="310" color="orangered" />
 <Arrow x1="243" y1="387" x2="243" y2="347" color="orangered" />
+</v-click>
 
 <br>
 
@@ -559,12 +570,7 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 
 ## 
 
-Thanks to the previous steps, all this step _appears_ to do is:
-
-- Delete `namespace ts {}`
-- Add an import
-
-Everything else stays the same!
+As a diff:
 
 ```diff
 -namespace ts {
@@ -575,6 +581,8 @@ Everything else stays the same!
  }
 -}
 ```
+
+Everything inside is unchanged!
 
 But, what the heck is this `_namespaces` import?
 
@@ -612,74 +620,28 @@ barrels"!
 
 ---
 
-# Nested "namespace barrels"
+# Emulating namespace behaviors
 
 ## 
 
-Namespaces can be nested, like:
+Most namespace behavior can be emulated with modules.
 
 ```ts
-// @filename: src/compiler/performance.ts
-namespace ts.performance {
-    export function mark(label: string) {/* ... */}
-}
-```
-
-This too can be emulated using reexports:
-
-```ts
-// @filename: src/compiler/performance.ts
-export function mark(label: string) {/* ... */}
-
-// @filename: src/compiler/_namespaces/ts.performance.ts;
-export * from "../performance";
-
+// Emulate nested namespaces like `namespace ts.performance {}`
 // @filename: src/compiler/_namespaces/ts.ts
 export * as performance from "./ts.performance";
-```
 
----
-
-# Merging "namespace barrels"
-
-## 
-
-To emulate project references and `prepend`, we can merge modules!
-
-```ts
-// @filename: src/server/_namespaces/ts.ts
-export * from "../../compiler/_namespaces/ts";
-export * from "../../services/_namespaces/ts";
-export * from "../../deprecatedCompat/_namespaces/ts";
-
-// @filename: src/server/project.ts
-import * as ts from "./_namespaces/ts";
-```
-
-This "namespace barrel" provides a "view" per-project that mimics the `ts`
-namespace we _used to_ observe before modules.
-
----
-
-# Also, this gives us our public API!
-
-## 
-
-Say, `typescript.js`.
-
-```ts
+// Emulate `prepend` by reexporting multiple namespace barrels
 // @filename: src/typescript/_namespaces/ts.ts
 export * from "../../compiler/_namespaces/ts";
 export * from "../../services/_namespaces/ts";
 export * from "../../deprecatedCompat/_namespaces/ts";
 
+// Export the entire ts namespace for public use
 // @filename: src/typescript/typescript.ts
 import * as ts from "./_namespaces/ts";
-
-export = ts; // <-- This is what API consumers see!
+export = ts;
 ```
-
-Convenient!
 
 ---
 
@@ -687,7 +649,7 @@ Convenient!
 
 ## 
 
-After step 3, we're left with fully qualified imports, like:
+After step 3, we're left with namespace imports, like:
 
 ```ts
 import * as ts from "./_namespaces/ts";
@@ -697,7 +659,7 @@ export function createSourceFile(sourceText: string): ts.SourceFile {
 }
 ```
 
-This step transforms the above into:
+This step converts them to named imports:
 
 ```ts
 import { createScanner, SourceFile } from "./_namespaces/ts";
@@ -707,17 +669,19 @@ export function createSourceFile(sourceText: string): SourceFile {
 }
 ```
 
+<!--
 This is _almost_ our desired code, but still through "namespace barrels".
+-->
 
 ---
 
-# ... and then draw the rest of the owl
+# The tedious work is done!
 
 ## 
 
 At this point, we're done with the bulk transformation.
 
-But, we're not done yet!
+But, we're not all the way there yet.
 
 <img src="/img/draw_owl.jpg">
 
@@ -765,13 +729,11 @@ Check out the PR or migration tool to see all of them.
 
 # Bundling with `esbuild`
 
-- Our old outputs were a handful of large-ish bundles produced by `outFile`
-  - Not looking to change the status quo quite yet
+- We still needed to bundle
 - Lots of bundlers to choose from; I went with `esbuild`
   ([esbuild.github.io](https://esbuild.github.io))
 - Obviously, it's fast; ~200 ms to build `tsc.js`
 - Features scope hoisting, tree shaking, enum inlining
-  - Great for performance and package size
 - We maintain a mode in our build which uses solely `tsc`, just to be sure
 
 <img
@@ -782,48 +744,18 @@ Check out the PR or migration tool to see all of them.
 
 <style>
 img {
-    height: 50%;
-    margin-left: auto;
-    margin-right: auto;
+  height: 50%;
+  margin-top: 5%;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>
 
 ---
 
-# Messing with `esbuild`'s output
-
-## 
-
-Before, our output looked like this, giving us both CommonJS and global script
-support:
-
-```ts
-var ts;
-(function(ts) {/* ... */})(ts || (ts = {}));
-// ...
-(function(ts) {
-    // Remember this?
-    if (typeof module !== "undefined" && module.exports) module.exports = ts;
-})(ts || (ts = {}));
-```
-
-`esbuild` equivalent using `--format=iife --global-name=ts --footer="if ..."`:
-
-```ts
-var ts = (() => {
-    // ...
-    return {/* ... */};
-})();
-if (typeof module !== "undefined" && module.exports) module.exports = ts;
-```
-
----
-
 # `d.ts` bundling
 
-- Along with "bundled" `.js` files, `tsc`'s `outFile` also produced `.d.ts`
-  files
-  - But now we're using esbuild, which doesn't produce `d.ts` files
+- Without `tsc`'s `prepend`, someone needs to bundle `d.ts` files
 - I ended up rolling my own `d.ts` bundler (~400 LoC)
 - Definitely not for external use; it's very specific to our API
 
@@ -881,20 +813,28 @@ months later, I would have tried `wireit`.
 
 # We did it! How has it turned out?
 
-## 
-
 Great! 👍
 
-- Core development loop performance boost
-  - New build is faster in general, and `esbuild` means we can skip typechecking
-- Performance speedup from `esbuild`'s scope hoisting (10-20% or so)
-- Package size reduction (63.8 MB -> 37.4 MB)
-  - Tree shaking in bundles, 2 space indent, general cleanup
+For TypeScript users:
+
+- 10-20% speedup from `esbuild`'s scope hoisting
+- 43% package size reduction (63.8 MB -> 37.4 MB)
+- No API change
+
+For the TypeScript team:
+
+- Core development loop improvement
 - Dogfooding!
-  - Discovered and fixed a few auto-import bugs
-  - Spawned an effort to better handle import organization and ecosystem
-    integration
 - `prepend` is deprecated; to be removed in TS 5.5
+
+<!--
+Package size reduction from tree shaking, 2 space indents,
+deleting typescriptServices.js
+
+Dogfooding:
+- Found some auto import bugs and fixed them
+- Spawned an effort to try and make TS better match other tooling for import organization
+-->
 
 ---
 
@@ -905,14 +845,23 @@ Great! 👍
 There's way too much exciting stuff to talk about, but:
 
 - Getting rid of `_namespaces`, somehow?
-  - Dual purpose; they also help resolve import cycles
 - Shipping ESM?
-  - Still some blockers, but looking hopeful!
   - Probably works for executables (`tsc`, `tsserver`, ...)?
   - Maybe an ESM API "for free"?
 - Untangling things so we can be tree shaken?
+  - Could we have `@typescript/*` packages?
 - Minification? Other optimizers?
   - Downstream patchers make this challenging 😢
+
+<!--
+- namespace barrels also help fix cycles
+- ESM likely works for our executables, maybe even an ESM API "for free"
+  - Even if not, we are modules so we can actually make an ESM API; before we couldn't.
+- Minification is hard because project patch us; yarn, ts-patch, prettier
+  - I've been trying to figure out ways we can address the main reasons people patch us.
+
+In any case, exciting stuff ahead.
+-->
 
 ---
 

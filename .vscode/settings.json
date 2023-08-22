@@ -7,6 +7,7 @@
         "chartjs",
         "clippy",
         "Compat",
+        "dogfood",
         "dogfooding",
         "dpdm",
         "dprint",
