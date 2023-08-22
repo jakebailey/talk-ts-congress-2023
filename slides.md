@@ -43,6 +43,12 @@ fonts:
     }
 </style>
 
+<!--
+Hey everyone, I'm Jake. I'm a senior software engineer at Microsoft,
+working on TypeScript, here to talk to you about TypeScript's migration
+to modules.
+-->
+
 ---
 
 # What are we talking about?
@@ -136,6 +142,14 @@ sayHello("TypeScript Congress");
 </v-click>
 
 <!--
+Let's go back to basics. What even are modules?
+
+Firstly, they're a syntax, import and export, which you're all familiar with.
+See code below
+
+They're also an output format, so ESM as I have below, but also CommonJS,
+very common module system in Node.
+
 When I talk about modules in this talk, I'm primarily talking about
 the syntax and its associated layout on disk.
 
@@ -171,6 +185,10 @@ namespace ts {
 Fun fact: namespaces were originally called "internal modules".
 
 <!--
+Well, in TypeScript land, every file is either a module or a script.
+In scripts, everything is global, and indeed TypeScript was structured
+using globally defined namespaces
+
 parser.ts defines the function createSourceFile, "exporting it"
 That makes it visible to other declarations of the ts namespace,
 so createProgram can use it, _implicitly_.
@@ -185,8 +203,8 @@ so createProgram can use it, _implicitly_.
 Namespaces turn into plain objects and functions.
 
 ```ts
-var ts;
 // was: src/compiler/parser.ts
+var ts;
 (function(ts) {
     function createSourceFile(sourceText) {/* ... */}
     ts.createSourceFile = createSourceFile;
@@ -242,7 +260,7 @@ Did you know that TypeScript has been a bundler this whole time?
 
 ## 
 
-Our outputs are constructed global scripts, but we're tricky.
+Our outputs are constructed global scripts, but we can be clever.
 
 ```ts
 namespace ts {
@@ -392,8 +410,7 @@ These are contributing factors in why it took so long to do this,
 along with loads of other little problems discovered along the way.
 CommonJS and the import/export syntax it works with has been around
 since the launch of TypeScript in 2012; ESM itself was added in 2015.
-First actual filed issue for "migrate" is 2019 with an actual effort
-that stalled.
+First actual filed issue for "migrate" is 2019 with an actual effort.
 
 It took me like 8-9 months of dedicated work to get it to the finish line.
 -->
@@ -789,9 +806,9 @@ tsup, dts-bundler-generator
 - With modules, the build steps are quite different!
 - Build completely replaced, reimplemented using an all new task runner (~500
   LoC)
-  - Plain JS functions with an explicit dependency graph, as parallel as
-    possible
 - It's called `hereby`, don't use it, thanks 😅
+
+<br>
 
 ```ts
 export const buildSrc = task({
@@ -805,8 +822,8 @@ export const buildSrc = task({
 <!--
 Old build had been gulp since 2016, `jake` before that.
 
-Feature complete at ~500 lines of code. Maybe if I had worked on this
-months later, I would have tried `wireit`.
+Feature complete at ~500 lines of code. Uses plain JS functions and module exports,
+and an explicit dependency graph which allows us to build optimally.
  -->
 
 ---
@@ -871,6 +888,9 @@ In any case, exciting stuff ahead.
 <br>
 
 Find me at: [jakebailey.dev](https://jakebailey.dev)
+
+These slides:
+[jakebailey.dev/talk-ts-congress-2023](https://jakebailey.dev/talk-ts-congress-2023)
 
 The migration PR:
 [jakebailey.dev/go/module-migration-pr](https://jakebailey.dev/go/module-migration-pr)
