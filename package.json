@@ -2,7 +2,7 @@
     "name": "talk-ts-congress-2023",
     "private": true,
     "scripts": {
-        "build": "slidev build --base /talk-ts-congress-2013/",
+        "build": "slidev build --base /talk-ts-congress-2023/",
         "dev": "slidev",
         "export": "slidev export --with-clicks"
     },
