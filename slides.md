@@ -458,6 +458,10 @@ img {
 
 ---
 
+```yaml
+layout: center
+```
+
 <!--
 ts-morph is really great for doing TS-to-TS transformation.
 When I started, we were using TS's own transformation system for this,
@@ -465,10 +469,6 @@ but our stack is much more focused on JS emit, not perfect source preservation.
 
 This genius patching idea came from a former team member, Eli.
 -->
-
-```yaml
-layout: center
-```
 
 # Code transformation
 
