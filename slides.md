@@ -329,13 +329,11 @@ The question is... how can we:
 - ... while maintaining the same behavior ...
 - ... and preserving a compatible API?
 
-<!-- dprint-ignore-start -->
-
 ---
+
+```yaml
 layout: center
----
-
-<!-- dprint-ignore-end -->
+```
 
 # The challenge
 
@@ -458,7 +456,7 @@ img {
 
 [jakebailey.dev/go/module-migration-demo](https://jakebailey.dev/go/module-migration-demo)
 
-<!-- dprint-ignore-start -->
+---
 
 <!--
 ts-morph is really great for doing TS-to-TS transformation.
@@ -468,11 +466,9 @@ but our stack is much more focused on JS emit, not perfect source preservation.
 This genius patching idea came from a former team member, Eli.
 -->
 
----
+```yaml
 layout: center
----
-
-<!-- dprint-ignore-end -->
+```
 
 # Code transformation
 
@@ -725,15 +721,11 @@ img {
   1. `git am --continue`
   1. Ask the migration tool to dump the patches
 
-<!-- dprint-ignore-start -->
-
-<!--  -->
-
 ---
+
+```yaml
 layout: center
----
-
-<!-- dprint-ignore-end -->
+```
 
 # Some manual change highlights
 
